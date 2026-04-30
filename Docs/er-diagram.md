@@ -90,7 +90,7 @@ erDiagram
         int id PK
         int project_id FK
         int skill_id FK
-        enum requirement_type "must|want"
+        enum requirement_type "required|preferred"
         int required_years "要求年数"
     }
     Assignment {
@@ -147,8 +147,8 @@ erDiagram
 - UI上のグループ化表示に必要
 - **原体験との接続**:「開発志望だったがパッケージ導入案件に入れられた」痛みは `product_type` カテゴリで表現される
 
-### ProjectRequiredSkill は must/want を分ける
-- **判断**:`requirement_type` enum で must/want を区別、`required_years` も保持
+### ProjectRequiredSkill は required/preferred を分ける
+- **判断**:`requirement_type` enum で required/preferred を区別、`required_years` も保持
 - **理由**:営業は「必須だけ満たす」と「必須・歓迎とも満たす」で営業の仕方が異なる
 - 複数スキルの AND/OR 組み合わせは将来拡張(DB・クエリ複雑化を避ける)
 

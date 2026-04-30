@@ -29,3 +29,7 @@ Thumbs.db
 
 # Fly
 .fly/
+
+# doc
+Claude.md
+Docs/Current-Architecture.md

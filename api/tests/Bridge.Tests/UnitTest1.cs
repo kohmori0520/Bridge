@@ -1,4 +1,4 @@
-﻿namespace Bridge.Tests;
+namespace Bridge.Tests;
 
 public class UnitTest1
 {
