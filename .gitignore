@@ -1,0 +1,31 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+api/**/appsettings.Development.json
+api/**/appsettings.Local.json
+
+# Node
+node_modules/
+node_modules*/
+dist/
+.vite/
+*.local
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+
+# Fly
+.fly/
