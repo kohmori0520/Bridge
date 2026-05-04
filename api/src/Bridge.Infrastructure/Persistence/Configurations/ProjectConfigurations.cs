@@ -26,6 +26,9 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.HasIndex(p => p.OwnerSalesId);
         builder.HasIndex(p => p.Status);
+
+        // ★ グローバルクエリフィルタ:DeletedAt が NULL のものだけ全クエリで返す
+        builder.HasQueryFilter(p => p.DeletedAt == null);
     }
 }
 

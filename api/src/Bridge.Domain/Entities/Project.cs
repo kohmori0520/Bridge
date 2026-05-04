@@ -14,6 +14,7 @@ public class Project
     public int UnitPriceMin { get; set; }
     public int UnitPriceMax { get; set; }
     public ProjectStatus Status { get; set; } = ProjectStatus.Open;
+    public DateTime? DeletedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

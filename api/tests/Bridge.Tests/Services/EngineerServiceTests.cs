@@ -1,0 +1,154 @@
+using Bridge.Api.Dtos.Engineers;
+using Bridge.Api.Services.Engineers;
+using Bridge.Domain.Entities;
+using Bridge.Domain.Enums;
+using Bridge.Tests.Support;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+
+namespace Bridge.Tests.Services;
+
+public class EngineerServiceTests
+{
+    [Fact]
+    public async Task ListAsync_FiltersByPrimarySalesAndSkillAndMarksAvailability()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var sales = new Sales { Name = "佐藤 営業", Department = "Sales" };
+        var react = new Skill { Name = "React", Category = SkillCategory.Framework };
+        var typeScript = new Skill { Name = "TypeScript", Category = SkillCategory.Language };
+        var availableEngineer = new Engineer
+        {
+            Name = "田中 太郎",
+            PrimarySales = sales,
+            Skills =
+            {
+                new EngineerSkill { Skill = react, Years = 3 },
+            },
+        };
+        var busyEngineer = new Engineer
+        {
+            Name = "鈴木 花子",
+            PrimarySales = sales,
+            Skills =
+            {
+                new EngineerSkill { Skill = react, Years = 5 },
+                new EngineerSkill { Skill = typeScript, Years = 4 },
+            },
+            Assignments =
+            {
+                new Assignment
+                {
+                    Project = CreateProject(sales, "稼働中案件"),
+                    AssignedAt = new DateOnly(2026, 5, 1),
+                    Status = AssignmentStatus.Active,
+                },
+            },
+        };
+        db.Engineers.AddRange(availableEngineer, busyEngineer);
+        await db.SaveChangesAsync();
+        var service = new EngineerService(db);
+
+        var result = await service.ListAsync(new EngineerListQuery
+        {
+            PrimarySalesId = sales.Id,
+            SkillId = react.Id,
+            Available = false,
+        });
+
+        result.Items.Should().ContainSingle();
+        result.Items[0].Name.Should().Be("鈴木 花子");
+        result.Items[0].IsAvailable.Should().BeFalse();
+        result.Items[0].Skills.Select(s => s.SkillName).Should().Contain(new[] { "React", "TypeScript" });
+    }
+
+    [Fact]
+    public async Task GetByIdAsync_ReturnsCurrentContractForActiveAssignment()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var salesUser = new User { Email = "sato@bridge.local", Role = UserRole.Sales, PasswordHash = "hash" };
+        var sales = new Sales { User = salesUser, Name = "佐藤 営業", Department = "Sales" };
+        var engineer = new Engineer
+        {
+            Name = "田中 太郎",
+            PrimarySales = sales,
+            Assignments =
+            {
+                new Assignment
+                {
+                    Project = CreateProject(sales, "現行案件"),
+                    AssignedAt = today.AddDays(-10),
+                    Status = AssignmentStatus.Active,
+                    Contracts =
+                    {
+                        new Contract
+                        {
+                            PeriodFrom = today.AddDays(-10),
+                            PeriodTo = today.AddDays(20),
+                            UnitPrice = 800000,
+                            ContractType = ContractType.Initial,
+                        },
+                    },
+                },
+            },
+        };
+        db.Engineers.Add(engineer);
+        await db.SaveChangesAsync();
+        var service = new EngineerService(db);
+
+        var result = await service.GetByIdAsync(engineer.Id);
+
+        result.Should().NotBeNull();
+        result!.PrimarySales!.Email.Should().Be("sato@bridge.local");
+        result.CurrentContract.Should().NotBeNull();
+        result.CurrentContract!.ProjectTitle.Should().Be("現行案件");
+        result.CurrentContract.DaysRemaining.Should().Be(20);
+        result.CurrentContract.UnitPrice.Should().Be(800000);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_UpdatesBasicProfileFields()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var engineer = new Engineer
+        {
+            Name = "旧氏名",
+            Bio = "old",
+            AvoidedWorkNote = "old note",
+        };
+        db.Engineers.Add(engineer);
+        await db.SaveChangesAsync();
+        var service = new EngineerService(db);
+
+        var result = await service.UpdateAsync(engineer.Id, new UpdateEngineerRequest
+        {
+            Name = "新氏名",
+            Bio = "new bio",
+            AvoidedWorkNote = "new note",
+        });
+
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("新氏名");
+        result.Bio.Should().Be("new bio");
+        result.AvoidedWorkNote.Should().Be("new note");
+
+        var stored = await db.Engineers.SingleAsync();
+        stored.UpdatedAt.Should().BeAfter(stored.CreatedAt.AddTicks(-1));
+    }
+
+    private static Project CreateProject(Sales sales, string title)
+    {
+        return new Project
+        {
+            OwnerSales = sales,
+            Title = title,
+            ClientName = "A社",
+            StartDate = new DateOnly(2026, 5, 1),
+            EndDate = new DateOnly(2026, 12, 31),
+            UnitPriceMin = 700000,
+            UnitPriceMax = 900000,
+            Status = ProjectStatus.Open,
+        };
+    }
+}
