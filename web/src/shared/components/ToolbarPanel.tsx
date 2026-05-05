@@ -1,21 +1,65 @@
-import { Search } from '@mui/icons-material'
-import { Button, FormControl, InputLabel, MenuItem, Paper, Select, TextField } from '@mui/material'
+import { RestartAlt, Search } from '@mui/icons-material'
+import { Button, FormControl, InputAdornment, InputLabel, MenuItem, Paper, Select, TextField } from '@mui/material'
 
-export function ToolbarPanel() {
+type ToolbarPanelProps = {
+  keyword: string
+  status: string
+  statusOptions: { value: string; label: string }[]
+  onKeywordChange: (value: string) => void
+  onStatusChange: (value: string) => void
+  keywordPlaceholder?: string
+  statusLabel?: string
+}
+
+export function ToolbarPanel({
+  keyword,
+  status,
+  statusOptions,
+  onKeywordChange,
+  onStatusChange,
+  keywordPlaceholder = 'キーワード',
+  statusLabel = 'ステータス',
+}: ToolbarPanelProps) {
+  const hasFilter = keyword.trim().length > 0 || status !== 'all'
+
   return (
     <Paper className="toolbar-panel" variant="outlined">
-      <TextField size="small" label="キーワード" placeholder="氏名・案件名・スキル" />
+      <TextField
+        size="small"
+        label="キーワード"
+        placeholder={keywordPlaceholder}
+        value={keyword}
+        onChange={(event) => onKeywordChange(event.target.value)}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search fontSize="small" />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
       <FormControl size="small">
-        <InputLabel id="status-filter-label">ステータス</InputLabel>
-        <Select labelId="status-filter-label" label="ステータス" defaultValue="all">
-          <MenuItem value="all">すべて</MenuItem>
-          <MenuItem value="open">募集中</MenuItem>
-          <MenuItem value="active">稼働中</MenuItem>
-          <MenuItem value="available">空き</MenuItem>
+        <InputLabel id="status-filter-label">{statusLabel}</InputLabel>
+        <Select labelId="status-filter-label" label={statusLabel} value={status} onChange={(event) => onStatusChange(event.target.value)}>
+          {statusOptions.map((option) => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
         </Select>
       </FormControl>
-      <Button startIcon={<Search />} variant="contained">
-        検索
+      <Button
+        startIcon={<RestartAlt />}
+        variant="outlined"
+        disabled={!hasFilter}
+        onClick={() => {
+          onKeywordChange('')
+          onStatusChange('all')
+        }}
+      >
+        クリア
       </Button>
     </Paper>
   )

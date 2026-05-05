@@ -5,10 +5,10 @@
 }
 
 .skill-edit-row {
-  align-items: center;
+  align-items: flex-start;
   display: grid;
   gap: 10px;
-  grid-template-columns: minmax(160px, 1fr) 120px 80px;
+  grid-template-columns: minmax(220px, 1fr) 120px 100px 42px;
 }
 
 @media (max-width: 900px) {

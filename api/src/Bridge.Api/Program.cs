@@ -6,6 +6,7 @@ using Bridge.Api.Services.Engineers;
 using Bridge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using Bridge.Api.Services.Projects;
@@ -25,18 +26,40 @@ builder.Services.AddControllers();
 var allowedOrigins = builder.Configuration
     .GetSection("Cors:AllowedOrigins")
     .Get<string[]>() ?? Array.Empty<string>();
+var allowedOriginsFromEnv = (builder.Configuration["Cors:AllowedOriginsCsv"] ?? string.Empty)
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+allowedOrigins = allowedOrigins
+    .Concat(allowedOriginsFromEnv)
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .Distinct(StringComparer.OrdinalIgnoreCase)
+    .ToArray();
+
+if (allowedOrigins.Length == 0 && builder.Environment.IsDevelopment())
+{
+    allowedOrigins = ["http://localhost:5173"];
+}
 
 if (allowedOrigins.Length == 0)
     throw new InvalidOperationException("Cors:AllowedOrigins configuration is missing.");
+
+var allowVercelPreviewOrigins = builder.Configuration.GetValue("Cors:AllowVercelPreviewOrigins", true);
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("BridgeCors", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(origin => IsAllowedOrigin(origin, allowedOrigins, allowVercelPreviewOrigins))
             .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             .WithHeaders("Authorization", "Content-Type");
     });
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 // Swagger(JWT 入力欄付き)
@@ -118,6 +141,8 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 // Pipeline
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -159,4 +184,17 @@ static void ValidateJwtOptions(JwtOptions options)
 
     if (options.ExpiryHours <= 0)
         throw new InvalidOperationException("Jwt:ExpiryHours must be greater than 0.");
+}
+
+static bool IsAllowedOrigin(string origin, string[] allowedOrigins, bool allowVercelPreviewOrigins)
+{
+    if (allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        return true;
+
+    if (!allowVercelPreviewOrigins)
+        return false;
+
+    return Uri.TryCreate(origin, UriKind.Absolute, out var uri)
+        && uri.Scheme == Uri.UriSchemeHttps
+        && uri.Host.EndsWith(".vercel.app", StringComparison.OrdinalIgnoreCase);
 }

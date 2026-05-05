@@ -1,7 +1,7 @@
 import { Add, Visibility } from '@mui/icons-material'
 import { Button, Chip, IconButton, Stack, Tooltip } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../../../auth/useAuth'
 import { PageHeader } from '../../../shared/components/PageHeader'
@@ -14,6 +14,8 @@ export function ProjectsPage() {
   const { user } = useAuth()
   const role: Role = user?.role ?? 'Engineer'
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [keyword, setKeyword] = useState('')
+  const [status, setStatus] = useState('all')
   const { data, isLoading } = useProjects(paginationModel.page, paginationModel.pageSize)
   const columns: GridColDef<Project>[] = [
     { field: 'title', headerName: role === 'Sales' ? 'タイトル' : '案件名', flex: 1.2, minWidth: 210 },
@@ -50,7 +52,21 @@ export function ProjectsPage() {
       ),
     },
   ]
-  const rows = role === 'Engineer' ? (data?.items ?? []).slice().sort((a, b) => b.matchScore - a.matchScore) : (data?.items ?? [])
+  const rows = useMemo(() => {
+    const normalizedKeyword = keyword.trim().toLowerCase()
+    const filtered = (data?.items ?? []).filter((project) => {
+      const matchesKeyword =
+        normalizedKeyword.length === 0 ||
+        [project.title, project.client, project.owner, project.summary, ...project.requiredSkills.map((skill) => skill.name), ...project.welcomeSkills.map((skill) => skill.name)]
+          .join(' ')
+          .toLowerCase()
+          .includes(normalizedKeyword)
+      const matchesStatus = status === 'all' || (status === 'open' ? project.status === '募集中' : project.status === 'クローズ')
+      return matchesKeyword && matchesStatus
+    })
+
+    return role === 'Engineer' ? filtered.slice().sort((a, b) => b.matchScore - a.matchScore) : filtered
+  }, [data?.items, keyword, role, status])
 
   return (
     <Stack spacing={2}>
@@ -65,7 +81,18 @@ export function ProjectsPage() {
           ) : undefined
         }
       />
-      <ToolbarPanel />
+      <ToolbarPanel
+        keyword={keyword}
+        status={status}
+        statusOptions={[
+          { value: 'all', label: 'すべて' },
+          { value: 'open', label: '募集中' },
+          { value: 'closed', label: 'クローズ' },
+        ]}
+        keywordPlaceholder="案件名・クライアント・スキル"
+        onKeywordChange={setKeyword}
+        onStatusChange={setStatus}
+      />
       <Section title={role === 'Sales' ? '案件' : '公開案件'}>
         <DataGrid
           autoHeight
@@ -75,10 +102,11 @@ export function ProjectsPage() {
           columns={columns}
           loading={isLoading}
           paginationMode="server"
-          rowCount={data?.total ?? 0}
+          rowCount={keyword || status !== 'all' ? rows.length : data?.total ?? 0}
           paginationModel={paginationModel}
           onPaginationModelChange={setPaginationModel}
           pageSizeOptions={[10, 20]}
+          localeText={{ noRowsLabel: '条件に合う案件がありません' }}
         />
       </Section>
     </Stack>

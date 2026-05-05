@@ -1,4 +1,5 @@
 const DEFAULT_API_BASE_URL = 'http://localhost:5130'
+const PRODUCTION_API_BASE_URL = 'https://bridge-api-mk.fly.dev'
 
 let accessToken: string | null = null
 
@@ -17,7 +18,10 @@ export class ApiError extends Error {
 }
 
 function getApiBaseUrl() {
-  return (import.meta.env.VITE_API_BASE_URL ?? DEFAULT_API_BASE_URL).replace(/\/$/, '')
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL
+  const fallbackUrl = import.meta.env.PROD ? PRODUCTION_API_BASE_URL : DEFAULT_API_BASE_URL
+
+  return (configuredUrl ?? fallbackUrl).replace(/\/$/, '')
 }
 
 async function readErrorMessage(response: Response) {

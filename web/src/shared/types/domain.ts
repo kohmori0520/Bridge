@@ -12,6 +12,7 @@ export type LoginCredentials = {
 }
 
 export type RequiredSkill = {
+  skillId?: number
   name: string
   years: number
   type: '必須' | '歓迎'

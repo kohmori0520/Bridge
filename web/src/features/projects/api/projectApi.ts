@@ -27,6 +27,7 @@ type ApiProjectSummary = {
 }
 
 type ApiRequiredSkill = {
+  skillId: number
   skillName: string
   requirement: string
   requiredYears: number
@@ -53,6 +54,30 @@ type ApiEngineerMatchesResponse = {
   }[]
 }
 
+export type SkillOption = {
+  id: number
+  name: string
+  category: string
+}
+
+export type ProjectRequiredSkillInput = {
+  skillId: number
+  requirement: 'required' | 'preferred'
+  requiredYears: number
+}
+
+export type SaveProjectInput = {
+  title: string
+  clientName: string
+  description: string
+  startDate: string
+  endDate: string
+  unitPriceMin: number
+  unitPriceMax: number
+  requiredSkills: ProjectRequiredSkillInput[]
+  status?: 'open' | 'closed'
+}
+
 function formatDateRange(startDate: string, endDate?: string) {
   return endDate ? `${startDate} 〜 ${endDate}` : `${startDate}〜`
 }
@@ -67,6 +92,7 @@ function toStatus(status: string): Project['status'] {
 
 function toRequiredSkill(skill: ApiRequiredSkill): RequiredSkill {
   return {
+    skillId: skill.skillId,
     name: skill.skillName,
     years: skill.requiredYears,
     type: skill.requirement === 'required' ? '必須' : '歓迎',
@@ -105,6 +131,20 @@ export const projectApi = {
     const response = await apiRequest<ApiProjectDetail>(`/projects/${id}`)
     return toProject(response, response)
   },
+  create: async (input: SaveProjectInput): Promise<Project> => {
+    const response = await apiRequest<ApiProjectDetail>('/projects', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+    return toProject(response, response)
+  },
+  update: async (id: number, input: SaveProjectInput): Promise<Project> => {
+    const response = await apiRequest<ApiProjectDetail>(`/projects/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ ...input, status: input.status ?? 'open' }),
+    })
+    return toProject(response, response)
+  },
   listMyMatches: async (): Promise<Project[]> => {
     const response = await apiRequest<ApiEngineerMatchesResponse>('/engineers/me/matches?page=1&limit=20')
     return response.matches.map((match) =>
@@ -121,4 +161,5 @@ export const projectApi = {
       ),
     )
   },
+  listSkills: async (): Promise<SkillOption[]> => apiRequest<SkillOption[]>('/skills'),
 }
