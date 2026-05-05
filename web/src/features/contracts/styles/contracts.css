@@ -1,0 +1,9 @@
+.contract-current {
+  background: #fffaf3;
+  border-color: #f5c77a;
+}
+
+.contract-row {
+  border-radius: 8px;
+  padding: 4px 6px;
+}

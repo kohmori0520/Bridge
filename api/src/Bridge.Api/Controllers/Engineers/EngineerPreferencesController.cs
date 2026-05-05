@@ -1,26 +1,25 @@
 using System.Security.Claims;
-using Bridge.Api.Dtos.EngineerSkills;
-using Bridge.Api.Dtos.Engineers;
-using Bridge.Api.Services.EngineerSkills;
+using Bridge.Api.Dtos.EngineerPreferences;
+using Bridge.Api.Services.EngineerPreferences;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Engineers;
 
 [ApiController]
 [Route("engineers")]
 [Authorize]
-public class EngineerSkillsController : ControllerBase
+public class EngineerPreferencesController : ControllerBase
 {
-    private readonly IEngineerSkillService _service;
+    private readonly IEngineerPreferenceService _service;
 
-    public EngineerSkillsController(IEngineerSkillService service)
+    public EngineerPreferencesController(IEngineerPreferenceService service)
     {
         _service = service;
     }
 
-    [HttpGet("{id:int}/skills")]
-    [ProducesResponseType(typeof(List<EngineerSkillDto>), StatusCodes.Status200OK)]
+    [HttpGet("{id:int}/preferences")]
+    [ProducesResponseType(typeof(EngineerPreferencesResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Get(int id)
     {
         if (!CanAccessEngineer(id)) return Forbid();
@@ -28,18 +27,18 @@ public class EngineerSkillsController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
-    [HttpPut("{id:int}/skills")]
-    [ProducesResponseType(typeof(List<EngineerSkillDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateEngineerSkillsRequest request)
+    [HttpPut("{id:int}/preferences")]
+    [ProducesResponseType(typeof(EngineerPreferencesResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateEngineerPreferencesRequest request)
     {
         if (!CanAccessEngineer(id)) return Forbid();
         var result = await _service.UpdateAsync(id, request);
         return result is null ? NotFound() : Ok(result);
     }
 
-    [HttpGet("me/skills")]
+    [HttpGet("me/preferences")]
     [Authorize(Policy = "EngineerOnly")]
-    [ProducesResponseType(typeof(List<EngineerSkillDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(EngineerPreferencesResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMe()
     {
         var engineerId = GetEngineerIdFromClaims();
@@ -48,10 +47,10 @@ public class EngineerSkillsController : ControllerBase
         return result is null ? NotFound() : Ok(result);
     }
 
-    [HttpPut("me/skills")]
+    [HttpPut("me/preferences")]
     [Authorize(Policy = "EngineerOnly")]
-    [ProducesResponseType(typeof(List<EngineerSkillDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateMe([FromBody] UpdateEngineerSkillsRequest request)
+    [ProducesResponseType(typeof(EngineerPreferencesResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateMe([FromBody] UpdateEngineerPreferencesRequest request)
     {
         var engineerId = GetEngineerIdFromClaims();
         if (engineerId is null) return Forbid();

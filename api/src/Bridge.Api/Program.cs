@@ -21,6 +21,24 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers
 builder.Services.AddControllers();
 
+// CORS
+var allowedOrigins = builder.Configuration
+    .GetSection("Cors:AllowedOrigins")
+    .Get<string[]>() ?? Array.Empty<string>();
+
+if (allowedOrigins.Length == 0)
+    throw new InvalidOperationException("Cors:AllowedOrigins configuration is missing.");
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BridgeCors", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+            .WithMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+            .WithHeaders("Authorization", "Content-Type");
+    });
+});
+
 // Swagger(JWT 入力欄付き)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -56,6 +74,7 @@ builder.Services.AddDbContext<BridgeDbContext>(options =>
 // JWT Options
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException("Jwt configuration is missing.");
+ValidateJwtOptions(jwtOptions);
 builder.Services.AddSingleton(jwtOptions);
 
 // Service registrations
@@ -106,6 +125,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("BridgeCors");
 app.UseAuthentication();   // ← JWT 検証(必ず Authorization の前)
 app.UseAuthorization();
 app.MapControllers();
@@ -119,3 +139,24 @@ if (app.Environment.IsDevelopment())
 }
 
 app.Run();
+
+static void ValidateJwtOptions(JwtOptions options)
+{
+    if (string.IsNullOrWhiteSpace(options.Secret))
+        throw new InvalidOperationException("Jwt:Secret configuration is missing.");
+
+    if (options.Secret == "REPLACE_IN_PRODUCTION")
+        throw new InvalidOperationException("Jwt:Secret must be replaced with a secure value.");
+
+    if (Encoding.UTF8.GetByteCount(options.Secret) < 32)
+        throw new InvalidOperationException("Jwt:Secret must be at least 32 bytes for HS256.");
+
+    if (string.IsNullOrWhiteSpace(options.Issuer))
+        throw new InvalidOperationException("Jwt:Issuer configuration is missing.");
+
+    if (string.IsNullOrWhiteSpace(options.Audience))
+        throw new InvalidOperationException("Jwt:Audience configuration is missing.");
+
+    if (options.ExpiryHours <= 0)
+        throw new InvalidOperationException("Jwt:ExpiryHours must be greater than 0.");
+}

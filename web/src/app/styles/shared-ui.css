@@ -1,0 +1,116 @@
+.page-header {
+  margin-bottom: 4px;
+}
+
+.header-row {
+  align-items: flex-end;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.back-button {
+  align-self: flex-start;
+}
+
+.section-card {
+  border: 1px solid #dce5f0;
+  border-radius: 8px;
+}
+
+.section-card .MuiCardContent-root {
+  padding: 18px;
+}
+
+.section-header {
+  align-items: center;
+  border-bottom: 1px solid #e8eef6;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-grid.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.info-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 11px 12px;
+}
+
+.info-item .MuiTypography-caption {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+.info-item.wide,
+.wide-field {
+  grid-column: 1 / -1;
+}
+
+.compact-row,
+.contract-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  min-height: 58px;
+}
+
+.toolbar-panel {
+  align-items: center;
+  background: #ffffff;
+  border-color: #dce5f0;
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+}
+
+.toolbar-panel .MuiTextField-root {
+  min-width: 260px;
+}
+
+.MuiDataGrid-root {
+  background: #fff;
+  border-color: #dce5f0;
+}
+
+.MuiDataGrid-columnHeaders {
+  background: #f1f5f9;
+}
+
+.MuiDataGrid-columnHeaderTitle {
+  font-weight: 700;
+}
+
+.MuiDataGrid-row:hover {
+  background: #f8fbff;
+}
+
+@media (max-width: 900px) {
+  .header-row,
+  .toolbar-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toolbar-panel .MuiTextField-root {
+    min-width: 0;
+  }
+}

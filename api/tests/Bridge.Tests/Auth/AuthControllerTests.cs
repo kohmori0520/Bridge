@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Bridge.Api.Controllers;
+using Bridge.Api.Controllers.Auth;
 using Bridge.Api.Dtos.Auth;
 using Bridge.Api.Services.Auth;
 using Bridge.Domain.Entities;

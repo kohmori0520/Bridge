@@ -4,7 +4,7 @@ using Bridge.Api.Services.Engineers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Engineers;
 
 [ApiController]
 [Route("engineers")]
@@ -97,7 +97,6 @@ public class EngineersController : ControllerBase
         return Ok(result);
     }
 
-    // ---- helpers ----
     private int? ResolvePrimarySalesId(string? raw)
     {
         if (string.IsNullOrEmpty(raw)) return null;

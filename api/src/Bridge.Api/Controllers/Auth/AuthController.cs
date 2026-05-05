@@ -1,13 +1,12 @@
+using System.Security.Claims;
 using Bridge.Api.Dtos.Auth;
 using Bridge.Api.Services.Auth;
-using Bridge.Domain.Entities;
 using Bridge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Auth;
 
 [ApiController]
 [Route("auth")]

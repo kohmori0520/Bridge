@@ -1,0 +1,82 @@
+.match-project-row {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  padding: 14px;
+}
+
+.score-badge {
+  align-items: center;
+  background: #eaf2fb;
+  border: 1px solid #c9ddf3;
+  border-radius: 8px;
+  color: #12345b;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 68px;
+}
+
+.match-project-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.score-progress {
+  max-width: 360px;
+}
+
+.candidate-card {
+  border-color: #cfddec;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.candidate-header,
+.candidate-footer {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.evaluation-row {
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e8eef6;
+  border-radius: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 24px minmax(130px, 1fr) 64px 88px 96px auto;
+  padding: 8px 10px;
+}
+
+@media (max-width: 900px) {
+  .candidate-header,
+  .candidate-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .match-project-row {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .score-badge {
+    align-items: baseline;
+    flex-direction: row;
+    gap: 4px;
+    min-height: auto;
+    padding: 8px 10px;
+  }
+
+  .evaluation-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -1,5 +1,5 @@
 # Bridge API - Fly.io 設定
-app = "bridge-api"
+app = "bridge-api-mk"
 primary_region = "nrt"  # Tokyo
 
 [build]
@@ -16,6 +16,13 @@ primary_region = "nrt"  # Tokyo
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "GET"
+    path = "/health"
 
 [[vm]]
   memory = "512mb"

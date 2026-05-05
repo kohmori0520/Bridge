@@ -4,7 +4,7 @@ using Bridge.Api.Services.Assignments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Assignments;
 
 [ApiController]
 [Route("assignments")]

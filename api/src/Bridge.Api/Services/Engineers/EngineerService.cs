@@ -50,7 +50,10 @@ public class EngineerService : IEngineerService
         if (query.SkillId.HasValue)
             queryable = queryable.Where(e => e.Skills.Any(s => s.SkillId == query.SkillId));
 
-        // available フィルタは取得後に評価(後述)
+        if (query.Available == true)
+            queryable = queryable.Where(e => !e.Assignments.Any(a => a.Status == AssignmentStatus.Active));
+        else if (query.Available == false)
+            queryable = queryable.Where(e => e.Assignments.Any(a => a.Status == AssignmentStatus.Active));
 
         var total = await queryable.CountAsync();
         var engineers = await queryable
@@ -79,12 +82,6 @@ public class EngineerService : IEngineerService
                 Years = s.Years,
             }).ToList(),
         }).ToList();
-
-        // available フィルタ
-        if (query.Available == true)
-            items = items.Where(i => i.IsAvailable).ToList();
-        else if (query.Available == false)
-            items = items.Where(i => !i.IsAvailable).ToList();
 
         return new EngineerListResponse
         {

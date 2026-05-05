@@ -1,0 +1,79 @@
+.app-shell {
+  min-height: 100svh;
+  background:
+    linear-gradient(180deg, rgba(18, 52, 91, 0.045), rgba(18, 52, 91, 0) 220px),
+    #f4f7fb;
+}
+
+.topbar {
+  min-height: 58px;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.brand {
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-decoration: none;
+}
+
+.user-area {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.nav-tabs {
+  background: #0b223d;
+  min-height: 42px;
+}
+
+.nav-tabs .MuiTab-root {
+  color: rgba(255, 255, 255, 0.78);
+  min-height: 42px;
+  padding-inline: 18px;
+}
+
+.nav-tabs .Mui-selected {
+  color: #fff;
+}
+
+.page-container {
+  padding-bottom: 40px;
+  padding-top: 24px;
+}
+
+.two-column {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .topbar,
+  .user-area {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    padding-bottom: 10px;
+    padding-top: 10px;
+  }
+
+  .user-area {
+    margin-left: 0;
+  }
+
+  .two-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .page-container {
+    padding-inline: 14px;
+    padding-top: 16px;
+  }
+}

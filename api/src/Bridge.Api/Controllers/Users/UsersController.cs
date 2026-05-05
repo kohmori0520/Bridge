@@ -3,7 +3,7 @@ using Bridge.Api.Services.Users;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Users;
 
 [ApiController]
 [Route("users")]

@@ -57,6 +57,7 @@ public class EngineerServiceTests
         });
 
         result.Items.Should().ContainSingle();
+        result.Pagination.Total.Should().Be(1);
         result.Items[0].Name.Should().Be("鈴木 花子");
         result.Items[0].IsAvailable.Should().BeFalse();
         result.Items[0].Skills.Select(s => s.SkillName).Should().Contain(new[] { "React", "TypeScript" });

@@ -3,7 +3,7 @@ using Bridge.Api.Services.Skills;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Skills;
 
 [ApiController]
 [Route("skills")]

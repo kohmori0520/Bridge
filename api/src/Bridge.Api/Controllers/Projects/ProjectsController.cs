@@ -4,7 +4,7 @@ using Bridge.Api.Services.Projects;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Bridge.Api.Controllers;
+namespace Bridge.Api.Controllers.Projects;
 
 [ApiController]
 [Route("projects")]
