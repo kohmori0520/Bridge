@@ -4,6 +4,7 @@ import type { Project, RequiredSkill } from '../../../shared/types/domain'
 export type PageRequest = {
   page: number
   pageSize: number
+  status?: 'open' | 'draft' | 'closed'
 }
 
 export type PageResponse<T> = {
@@ -75,7 +76,7 @@ export type SaveProjectInput = {
   unitPriceMin: number
   unitPriceMax: number
   requiredSkills: ProjectRequiredSkillInput[]
-  status?: 'open' | 'closed'
+  status?: 'draft' | 'open' | 'closed' | 'cancelled'
 }
 
 function formatDateRange(startDate: string, endDate?: string) {
@@ -87,7 +88,10 @@ function formatPrice(min: number, max: number) {
 }
 
 function toStatus(status: string): Project['status'] {
-  return status.toLowerCase() === 'open' ? '募集中' : 'クローズ'
+  const normalized = status.toLowerCase()
+  if (normalized === 'open') return '募集中'
+  if (normalized === 'draft') return '下書き'
+  return 'クローズ'
 }
 
 function toRequiredSkill(skill: ApiRequiredSkill): RequiredSkill {
@@ -120,8 +124,14 @@ function toProject(summary: ApiProjectSummary, detail?: Partial<ApiProjectDetail
 }
 
 export const projectApi = {
-  list: async ({ page, pageSize }: PageRequest): Promise<PageResponse<Project>> => {
-    const response = await apiRequest<ApiProjectListResponse>(`/projects?page=${page + 1}&limit=${pageSize}`)
+  list: async ({ page, pageSize, status }: PageRequest): Promise<PageResponse<Project>> => {
+    const params = new URLSearchParams({
+      page: String(page + 1),
+      limit: String(pageSize),
+    })
+    if (status) params.set('status', status)
+
+    const response = await apiRequest<ApiProjectListResponse>(`/projects?${params.toString()}`)
     return {
       items: response.items.map((project) => toProject(project)),
       total: response.pagination.total,
@@ -141,7 +151,7 @@ export const projectApi = {
   update: async (id: number, input: SaveProjectInput): Promise<Project> => {
     const response = await apiRequest<ApiProjectDetail>(`/projects/${id}`, {
       method: 'PATCH',
-      body: JSON.stringify({ ...input, status: input.status ?? 'open' }),
+      body: JSON.stringify({ ...input, status: input.status ?? 'draft' }),
     })
     return toProject(response, response)
   },

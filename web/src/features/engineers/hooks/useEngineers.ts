@@ -14,3 +14,11 @@ export function useEngineer(engineerId: number) {
     queryFn: () => engineerApi.get(engineerId),
   })
 }
+
+export function useEngineerProfile(engineerId: number, enabled = true) {
+  return useQuery({
+    queryKey: ['engineers', engineerId, 'profile'],
+    queryFn: () => engineerApi.getProfile(engineerId),
+    enabled,
+  })
+}

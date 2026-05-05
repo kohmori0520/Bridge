@@ -4,6 +4,7 @@ import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { useAuth } from '../../../auth/useAuth'
+import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
@@ -16,7 +17,11 @@ export function ProjectsPage() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
-  const { data, isLoading } = useProjects(paginationModel.page, paginationModel.pageSize)
+  const { data, error, isLoading } = useProjects(
+    paginationModel.page,
+    paginationModel.pageSize,
+    role === 'Engineer' ? 'open' : undefined,
+  )
   const columns: GridColDef<Project>[] = [
     { field: 'title', headerName: role === 'Sales' ? 'タイトル' : '案件名', flex: 1.2, minWidth: 210 },
     { field: 'client', headerName: 'クライアント', flex: 0.8, minWidth: 140 },
@@ -24,7 +29,13 @@ export function ProjectsPage() {
       field: 'status',
       headerName: 'ステータス',
       width: 120,
-      renderCell: ({ value }) => <Chip size="small" color={value === '募集中' ? 'success' : 'default'} label={value} />,
+      renderCell: ({ value }) => (
+        <Chip
+          size="small"
+          color={value === '募集中' ? 'success' : value === '下書き' ? 'warning' : 'default'}
+          label={value}
+        />
+      ),
     },
     ...(role === 'Engineer'
       ? [
@@ -61,7 +72,11 @@ export function ProjectsPage() {
           .join(' ')
           .toLowerCase()
           .includes(normalizedKeyword)
-      const matchesStatus = status === 'all' || (status === 'open' ? project.status === '募集中' : project.status === 'クローズ')
+      const matchesStatus =
+        status === 'all' ||
+        (status === 'open' && project.status === '募集中') ||
+        (status === 'draft' && project.status === '下書き') ||
+        (status === 'closed' && project.status === 'クローズ')
       return matchesKeyword && matchesStatus
     })
 
@@ -86,6 +101,7 @@ export function ProjectsPage() {
         status={status}
         statusOptions={[
           { value: 'all', label: 'すべて' },
+          { value: 'draft', label: '下書き' },
           { value: 'open', label: '募集中' },
           { value: 'closed', label: 'クローズ' },
         ]}
@@ -93,6 +109,7 @@ export function ProjectsPage() {
         onKeywordChange={setKeyword}
         onStatusChange={setStatus}
       />
+      {error ? <ApiErrorAlert error={error} fallbackMessage="案件一覧の取得に失敗しました。" /> : null}
       <Section title={role === 'Sales' ? '案件' : '公開案件'}>
         <DataGrid
           autoHeight

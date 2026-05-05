@@ -22,7 +22,7 @@ export type Project = {
   id: number
   title: string
   client: string
-  status: '募集中' | 'クローズ'
+  status: '下書き' | '募集中' | 'クローズ'
   owner: string
   period: string
   startDate: string

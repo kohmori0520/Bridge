@@ -29,7 +29,7 @@ export function toUser(response: AuthUserResponse): User {
 }
 
 export const authApi = {
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string): Promise<{ token: string; user: User }> => {
     const response = await apiRequest<LoginResponse>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),

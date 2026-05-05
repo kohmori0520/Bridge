@@ -27,11 +27,12 @@ public class ProjectsController : ControllerBase
         [FromQuery] int limit = 20)
     {
         var resolvedOwnerId = ResolveOwnerSalesId(ownerSalesId);
+        var resolvedStatus = User.IsInRole("Engineer") ? "open" : status;
 
         var query = new ProjectListQuery
         {
             OwnerSalesId = resolvedOwnerId,
-            Status = status,
+            Status = resolvedStatus,
             Page = page,
             Limit = limit,
         };
@@ -45,6 +46,9 @@ public class ProjectsController : ControllerBase
     public async Task<IActionResult> GetById(int id)
     {
         var result = await _service.GetByIdAsync(id);
+        if (User.IsInRole("Engineer") && result?.Status != "open")
+            return NotFound();
+
         return result is null ? NotFound() : Ok(result);
     }
 

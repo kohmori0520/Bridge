@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { projectApi } from '../api/projectApi'
 
-export function useProjects(page: number, pageSize: number) {
+export function useProjects(page: number, pageSize: number, status?: 'open' | 'draft' | 'closed') {
   return useQuery({
-    queryKey: ['projects', page, pageSize],
-    queryFn: () => projectApi.list({ page, pageSize }),
+    queryKey: ['projects', page, pageSize, status],
+    queryFn: () => projectApi.list({ page, pageSize, status }),
   })
 }
 

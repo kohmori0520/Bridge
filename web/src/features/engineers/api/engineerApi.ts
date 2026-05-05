@@ -10,19 +10,54 @@ type ApiEngineerSummary = {
   } | null
   isAvailable: boolean
   skills: {
+    skillId?: number
     skillName: string
+    category?: string
     years: number
   }[]
 }
 
 type ApiEngineerDetail = ApiEngineerSummary & {
+  bio: string
   avoidedWorkNote: string
+  preferredSkills: {
+    skillId: number
+    skillName: string
+    category: string
+  }[]
   preferredCategories: string[]
   currentContract?: {
     projectTitle: string
     periodTo: string
     unitPrice: number
   } | null
+}
+
+export type EngineerProfile = {
+  id: number
+  name: string
+  bio: string
+  avoidedWorkNote: string
+  skills: {
+    skillId: number
+    skillName: string
+    category: string
+    years: number
+  }[]
+  preferredSkillIds: number[]
+  preferredCategories: string[]
+}
+
+export type SaveEngineerProfileInput = {
+  name: string
+  bio: string
+  avoidedWorkNote: string
+  skills: {
+    skillId: number
+    years: number
+  }[]
+  preferredSkillIds: number[]
+  preferredCategories: string[]
 }
 
 type ApiEngineerListResponse = {
@@ -52,6 +87,25 @@ function toEngineer(response: ApiEngineerSummary | ApiEngineerDetail): Engineer 
   }
 }
 
+function toEngineerProfile(response: ApiEngineerDetail): EngineerProfile {
+  return {
+    id: response.id,
+    name: response.name,
+    bio: response.bio ?? '',
+    avoidedWorkNote: response.avoidedWorkNote ?? '',
+    skills: response.skills
+      .filter((skill) => typeof skill.skillId === 'number')
+      .map((skill) => ({
+        skillId: skill.skillId!,
+        skillName: skill.skillName,
+        category: skill.category ?? '',
+        years: skill.years,
+      })),
+    preferredSkillIds: response.preferredSkills.map((skill) => skill.skillId),
+    preferredCategories: response.preferredCategories,
+  }
+}
+
 export const engineerApi = {
   list: async ({ page, pageSize }: PageRequest): Promise<PageResponse<Engineer>> => {
     const response = await apiRequest<ApiEngineerListResponse>(`/engineers?page=${page + 1}&limit=${pageSize}`)
@@ -63,5 +117,61 @@ export const engineerApi = {
   get: async (id: number): Promise<Engineer | undefined> => {
     const response = await apiRequest<ApiEngineerDetail>(`/engineers/${id}`)
     return toEngineer(response)
+  },
+  getProfile: async (id: number): Promise<EngineerProfile> => {
+    const response = await apiRequest<ApiEngineerDetail>(`/engineers/${id}`)
+    return toEngineerProfile(response)
+  },
+  getMyProfile: async (): Promise<EngineerProfile> => {
+    const response = await apiRequest<ApiEngineerDetail>('/engineers/me')
+    return toEngineerProfile(response)
+  },
+  saveProfile: async (id: number, input: SaveEngineerProfileInput): Promise<EngineerProfile> => {
+    await apiRequest<ApiEngineerDetail>(`/engineers/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: input.name,
+        bio: input.bio,
+        avoidedWorkNote: input.avoidedWorkNote,
+      }),
+    })
+    await apiRequest(`/engineers/${id}/skills`, {
+      method: 'PUT',
+      body: JSON.stringify({ skills: input.skills }),
+    })
+    await apiRequest(`/engineers/${id}/preferences`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        preferredSkillIds: input.preferredSkillIds,
+        preferredCategories: input.preferredCategories,
+        avoidedWorkNote: input.avoidedWorkNote,
+      }),
+    })
+
+    return engineerApi.getProfile(id)
+  },
+  saveMyProfile: async (input: SaveEngineerProfileInput): Promise<EngineerProfile> => {
+    await apiRequest<ApiEngineerDetail>('/engineers/me', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        name: input.name,
+        bio: input.bio,
+        avoidedWorkNote: input.avoidedWorkNote,
+      }),
+    })
+    await apiRequest('/engineers/me/skills', {
+      method: 'PUT',
+      body: JSON.stringify({ skills: input.skills }),
+    })
+    await apiRequest('/engineers/me/preferences', {
+      method: 'PUT',
+      body: JSON.stringify({
+        preferredSkillIds: input.preferredSkillIds,
+        preferredCategories: input.preferredCategories,
+        avoidedWorkNote: input.avoidedWorkNote,
+      }),
+    })
+
+    return engineerApi.getMyProfile()
   },
 }

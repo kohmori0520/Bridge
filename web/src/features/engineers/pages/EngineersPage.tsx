@@ -3,6 +3,7 @@ import { Button, Chip, IconButton, Stack, Tooltip } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
@@ -13,7 +14,7 @@ export function EngineersPage() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
-  const { data, isLoading } = useEngineers(paginationModel.page, paginationModel.pageSize)
+  const { data, error, isLoading } = useEngineers(paginationModel.page, paginationModel.pageSize)
   const columns: GridColDef<Engineer>[] = [
     { field: 'name', headerName: '氏名', flex: 1, minWidth: 150 },
     {
@@ -59,7 +60,11 @@ export function EngineersPage() {
       <PageHeader
         title="技術者一覧"
         subtitle="担当エンジニアの稼働状況とスキル"
-        actions={<Button component={RouterLink} to="/engineers/new" variant="contained" startIcon={<Add />}>技術者作成</Button>}
+        actions={
+          <Button component={RouterLink} to="/engineers/new" variant="contained" startIcon={<Add />}>
+            技術者作成
+          </Button>
+        }
       />
       <ToolbarPanel
         keyword={keyword}
@@ -73,6 +78,7 @@ export function EngineersPage() {
         onKeywordChange={setKeyword}
         onStatusChange={setStatus}
       />
+      {error ? <ApiErrorAlert error={error} fallbackMessage="技術者一覧の取得に失敗しました。" /> : null}
       <Section title="技術者">
         <DataGrid
           autoHeight

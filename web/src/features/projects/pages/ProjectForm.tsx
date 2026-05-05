@@ -5,6 +5,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
+import { getSkillCategoryLabel, groupBySkillCategory, sortSkillCategories } from '../../../shared/utils/skillCategories'
 import { projectApi, type ProjectRequiredSkillInput, type SaveProjectInput, type SkillOption } from '../api/projectApi'
 import { useProject, useSkills } from '../hooks/useProjects'
 
@@ -16,7 +18,7 @@ type ProjectFormState = {
   unitPriceMin: string
   unitPriceMax: string
   description: string
-  status: 'open' | 'closed'
+  status: 'draft' | 'open' | 'closed'
 }
 
 type SkillFormState = {
@@ -33,36 +35,11 @@ const emptyProjectForm: ProjectFormState = {
   unitPriceMin: '70',
   unitPriceMax: '90',
   description: '',
-  status: 'open',
+  status: 'draft',
 }
 
 function toYen(value: string) {
   return Math.max(0, Number(value || 0)) * 10000
-}
-
-const skillCategoryOrder = ['Language', 'Framework', 'Infrastructure', 'Database', 'Domain', 'Role', 'ProductType', 'Tool', 'Other']
-
-const skillCategoryLabels: Record<string, string> = {
-  Language: '言語',
-  Framework: 'フレームワーク',
-  Infrastructure: 'インフラ',
-  Database: 'データベース',
-  Domain: '業務ドメイン',
-  Role: '役割',
-  ProductType: 'プロダクト種別',
-  Tool: 'ツール',
-  Other: 'その他',
-}
-
-function getSkillCategoryLabel(category: string) {
-  return skillCategoryLabels[category] ?? category
-}
-
-function groupSkillsByCategory(skills: SkillOption[]) {
-  return skills.reduce<Record<string, SkillOption[]>>((groups, skill) => {
-    groups[skill.category] = [...(groups[skill.category] ?? []), skill]
-    return groups
-  }, {})
 }
 
 export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
@@ -75,14 +52,9 @@ export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
   const [form, setForm] = useState<ProjectFormState>(emptyProjectForm)
   const [skillRows, setSkillRows] = useState<SkillFormState[]>([])
   const [error, setError] = useState<string | null>(null)
-  const groupedSkills = useMemo(() => groupSkillsByCategory(skills), [skills])
+  const groupedSkills = useMemo(() => groupBySkillCategory(skills), [skills])
   const skillGroups = useMemo(
-    () =>
-      Object.keys(groupedSkills).sort((a, b) => {
-        const aIndex = skillCategoryOrder.indexOf(a)
-        const bIndex = skillCategoryOrder.indexOf(b)
-        return (aIndex === -1 ? Number.MAX_SAFE_INTEGER : aIndex) - (bIndex === -1 ? Number.MAX_SAFE_INTEGER : bIndex)
-      }),
+    () => sortSkillCategories(Object.keys(groupedSkills)),
     [groupedSkills],
   )
   const selectedSkillIds = useMemo(() => skillRows.map((row) => row.id).filter(Boolean), [skillRows])
@@ -110,7 +82,7 @@ export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
         unitPriceMin: project.price.match(/^(\d+)万/)?.[1] ?? '70',
         unitPriceMax: project.price.match(/〜(\d+)万/)?.[1] ?? '90',
         description: project.summary,
-        status: project.status === '募集中' ? 'open' : 'closed',
+        status: project.status === '募集中' ? 'open' : project.status === '下書き' ? 'draft' : 'closed',
       })
       setSkillRows(
         project.requiredSkills.concat(project.welcomeSkills).map((skill) => ({
@@ -203,7 +175,7 @@ export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
     <Stack spacing={2}>
       <PageHeader title={mode === 'new' ? '案件作成' : '案件編集'} subtitle="案件情報と要求スキルを登録します" backTo="/projects" />
       {error && <Alert severity="error">{error}</Alert>}
-      {mutation.error && <Alert severity="error">{mutation.error instanceof Error ? mutation.error.message : '保存に失敗しました'}</Alert>}
+      {mutation.error && <ApiErrorAlert error={mutation.error} fallbackMessage="保存に失敗しました" />}
       <Section title="基本情報">
         <Box className="form-grid">
           <TextField label="タイトル" value={form.title} onChange={(event) => updateForm('title', event.target.value)} />
@@ -212,12 +184,11 @@ export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
           <TextField label="終了日" type="date" value={form.endDate} onChange={(event) => updateForm('endDate', event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
           <TextField label="単価下限(万円)" value={form.unitPriceMin} onChange={(event) => updateForm('unitPriceMin', event.target.value)} />
           <TextField label="単価上限(万円)" value={form.unitPriceMax} onChange={(event) => updateForm('unitPriceMax', event.target.value)} />
-          {mode === 'edit' && (
-            <TextField select label="ステータス" value={form.status} onChange={(event) => updateForm('status', event.target.value)}>
-              <MenuItem value="open">募集中</MenuItem>
-              <MenuItem value="closed">クローズ</MenuItem>
-            </TextField>
-          )}
+          <TextField select label="公開状態" value={form.status} onChange={(event) => updateForm('status', event.target.value)}>
+            <MenuItem value="draft">下書き(非公開)</MenuItem>
+            <MenuItem value="open">公開</MenuItem>
+            {mode === 'edit' && <MenuItem value="closed">クローズ</MenuItem>}
+          </TextField>
           <TextField label="概要" multiline minRows={4} className="wide-field" value={form.description} onChange={(event) => updateForm('description', event.target.value)} />
         </Box>
       </Section>

@@ -1,8 +1,10 @@
 import { Close, Edit } from '@mui/icons-material'
-import { Alert, Button, Stack } from '@mui/material'
+import { Button, Stack } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { useAuth } from '../../../auth/useAuth'
+import { EmptyState } from '../../../shared/components/EmptyState'
 import { Info } from '../../../shared/components/Info'
+import { LoadingState } from '../../../shared/components/LoadingState'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { MatchCandidateCard } from '../../matching/components/MatchCandidateCard'
@@ -19,11 +21,11 @@ export function ProjectDetailPage() {
   const { data: matchCandidates = [] } = useProjectMatches(projectId)
 
   if (isLoading) {
-    return <Alert severity="info">案件情報を読み込み中です。</Alert>
+    return <LoadingState message="案件情報を読み込み中です。" />
   }
 
   if (!project) {
-    return <Alert severity="error">案件が見つかりませんでした。</Alert>
+    return <EmptyState message="案件が見つかりませんでした。" />
   }
 
   return (

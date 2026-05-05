@@ -46,8 +46,9 @@ npm run preview      # build 結果の確認
 ## Authentication
 
 - `/auth/login` で JWT を取得します。
-- JWT は React state 上のメモリに保持します。
-- リロード時は再ログインが必要です。
+- JWT とユーザー情報は `sessionStorage` に保持します。
+- 同一タブ内のリロードではログイン状態を復元します。
+- タブを閉じた場合、またはログアウト時にセッションを破棄します。
 
 開発用ユーザー:
 
@@ -59,6 +60,7 @@ npm run preview      # build 結果の確認
 ## API Integration
 
 共通 HTTP client は `src/shared/api/http.ts` にあります。
+未設定時は開発環境では `http://localhost:5130`、本番ビルドでは `https://bridge-api-mk.fly.dev` に接続します。
 
 主な接続済み API:
 

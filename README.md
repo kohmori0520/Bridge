@@ -121,6 +121,21 @@ Production では Seeder は実行されません。
 - Swagger は Development のみ有効
 - CORS は Vercel の固定 URL を allowlist する
 
+### 主な環境変数
+
+| Scope | Key | Purpose |
+|---|---|---|
+| Web | `VITE_API_BASE_URL` | フロントエンドが接続する API のベース URL |
+| API | `ConnectionStrings__Default` | PostgreSQL / Supabase 接続文字列 |
+| API | `Jwt__Secret` | JWT 署名 secret |
+| API | `Jwt__Issuer` | JWT issuer |
+| API | `Jwt__Audience` | JWT audience |
+| API | `Jwt__ExpiryHours` | JWT 有効期限 |
+| API | `Cors__AllowedOriginsCsv` | 許可する Web origin のカンマ区切り |
+| API | `Cors__AllowVercelPreviewOrigins` | Vercel preview URL を許可するか |
+
+フロントエンドでは JWT とユーザー情報を `sessionStorage` に保持します。ブラウザのタブを閉じるとセッションは破棄され、ログアウト時にも明示的に削除します。
+
 ## ドキュメント
 
 - [`Docs/requirements.md`](Docs/requirements.md): 要件定義

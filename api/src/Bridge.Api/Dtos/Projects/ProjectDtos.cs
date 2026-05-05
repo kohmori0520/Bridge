@@ -75,6 +75,9 @@ public class CreateProjectRequest
     [Range(0, int.MaxValue)]
     public int UnitPriceMax { get; set; }
 
+    [RegularExpression("^(draft|open)$")]
+    public string Status { get; set; } = "draft";  // "draft" | "open"
+
     [Required]
     public List<ProjectRequiredSkillItem> RequiredSkills { get; set; } = new();
 }
@@ -82,7 +85,8 @@ public class CreateProjectRequest
 public class UpdateProjectRequest : CreateProjectRequest
 {
     [Required]
-    public string Status { get; set; } = string.Empty;  // "open" | "closed"
+    [RegularExpression("^(draft|open|closed|cancelled)$")]
+    public new string Status { get; set; } = string.Empty;  // "draft" | "open" | "closed" | "cancelled"
 }
 
 public class ProjectRequiredSkillItem

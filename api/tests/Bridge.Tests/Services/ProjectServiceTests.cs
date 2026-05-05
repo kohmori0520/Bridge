@@ -11,7 +11,7 @@ namespace Bridge.Tests.Services;
 public class ProjectServiceTests
 {
     [Fact]
-    public async Task CreateAsync_CreatesOpenProjectWithValidRequiredSkillsOnly()
+    public async Task CreateAsync_CreatesProjectWithRequestedStatusAndValidRequiredSkillsOnly()
     {
         await using var db = TestDbContextFactory.Create("bridge-project-service-tests");
         var sales = new Sales { Name = "佐藤 営業" };
@@ -31,6 +31,7 @@ public class ProjectServiceTests
             EndDate = new DateOnly(2026, 12, 31),
             UnitPriceMin = 700000,
             UnitPriceMax = 900000,
+            Status = "draft",
             RequiredSkills =
             {
                 new ProjectRequiredSkillItem { SkillId = react.Id, Requirement = "required", RequiredYears = 3 },
@@ -39,7 +40,7 @@ public class ProjectServiceTests
             },
         }, sales.Id);
 
-        result.Status.Should().Be("open");
+        result.Status.Should().Be("draft");
         result.OwnerSales.Id.Should().Be(sales.Id);
         result.RequiredSkills.Select(s => (s.SkillName, s.Requirement, s.RequiredYears)).Should().BeEquivalentTo(new[]
         {

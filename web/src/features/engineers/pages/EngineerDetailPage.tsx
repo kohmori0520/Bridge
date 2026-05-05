@@ -1,8 +1,10 @@
 import { Edit } from '@mui/icons-material'
-import { Alert, Box, Button, Stack } from '@mui/material'
+import { Box, Button, Stack } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
 import { ChipList } from '../../../shared/components/ChipList'
+import { EmptyState } from '../../../shared/components/EmptyState'
 import { Info } from '../../../shared/components/Info'
+import { LoadingState } from '../../../shared/components/LoadingState'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { ContractList } from '../../contracts/components/ContractList'
@@ -14,11 +16,11 @@ export function EngineerDetailPage() {
   const { data: engineer, isLoading } = useEngineer(engineerId)
 
   if (isLoading) {
-    return <Alert severity="info">技術者情報を読み込み中です。</Alert>
+    return <LoadingState message="技術者情報を読み込み中です。" />
   }
 
   if (!engineer) {
-    return <Alert severity="error">技術者が見つかりませんでした。</Alert>
+    return <EmptyState message="技術者が見つかりませんでした。" />
   }
 
   return (

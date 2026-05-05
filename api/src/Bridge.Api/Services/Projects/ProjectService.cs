@@ -76,6 +76,12 @@ public class ProjectService : IProjectService
 
     public async Task<ProjectDetailResponse> CreateAsync(CreateProjectRequest request, int ownerSalesId)
     {
+        if (!Enum.TryParse<ProjectStatus>(request.Status, ignoreCase: true, out var status)
+            || status is not (ProjectStatus.Draft or ProjectStatus.Open))
+        {
+            status = ProjectStatus.Draft;
+        }
+
         var validSkillIds = await GetValidSkillIdsAsync(request.RequiredSkills.Select(s => s.SkillId).ToList());
 
         await using var tx = await _db.Database.BeginTransactionAsync();
@@ -90,7 +96,7 @@ public class ProjectService : IProjectService
             EndDate = request.EndDate,
             UnitPriceMin = request.UnitPriceMin,
             UnitPriceMax = request.UnitPriceMax,
-            Status = ProjectStatus.Open,
+            Status = status,
         };
         _db.Projects.Add(project);
         await _db.SaveChangesAsync();
