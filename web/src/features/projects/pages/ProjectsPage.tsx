@@ -9,7 +9,7 @@ import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { SummaryStats } from '../../../shared/components/SummaryStats'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
-import { useProjects } from '../hooks/useProjects'
+import { useEngineerProjectList, useProjects } from '../hooks/useProjects'
 import type { Project, Role } from '../../../shared/types/domain'
 
 export function ProjectsPage() {
@@ -18,11 +18,13 @@ export function ProjectsPage() {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
-  const { data, error, isLoading } = useProjects(
+  const salesProjectsQuery = useProjects(
     paginationModel.page,
     paginationModel.pageSize,
-    role === 'Engineer' ? 'open' : undefined,
+    role === 'Sales' || role === 'Admin' ? undefined : 'open',
   )
+  const engineerProjectsQuery = useEngineerProjectList(paginationModel.page, paginationModel.pageSize)
+  const { data, error, isLoading } = role === 'Engineer' ? engineerProjectsQuery : salesProjectsQuery
   const columns: GridColDef<Project>[] = [
     { field: 'title', headerName: role === 'Sales' ? 'タイトル' : '案件名', flex: 1.2, minWidth: 210 },
     { field: 'client', headerName: 'クライアント', flex: 0.8, minWidth: 140 },

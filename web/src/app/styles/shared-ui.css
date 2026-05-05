@@ -7,10 +7,12 @@
   display: flex;
   gap: 16px;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .header-row .MuiTypography-h4 {
   letter-spacing: 0;
+  overflow-wrap: anywhere;
 }
 
 .header-row .MuiTypography-colorTextSecondary {
@@ -20,6 +22,11 @@
 
 .back-button {
   align-self: flex-start;
+}
+
+.header-row > .MuiStack-root {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .section-card {
@@ -40,6 +47,12 @@
   justify-content: space-between;
   margin-bottom: 14px;
   padding-bottom: 10px;
+  min-width: 0;
+}
+
+.section-header .MuiTypography-root {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .detail-grid {
@@ -56,6 +69,7 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+  min-width: 0;
   padding: 11px 12px;
 }
 
@@ -79,6 +93,16 @@
   min-height: 58px;
 }
 
+.compact-row > .MuiBox-root,
+.contract-row > .MuiBox-root {
+  min-width: 0;
+}
+
+.compact-row .MuiTypography-root,
+.contract-row .MuiTypography-root {
+  overflow-wrap: anywhere;
+}
+
 .compact-row {
   border-radius: 8px;
   padding: 6px 4px;
@@ -91,7 +115,7 @@
 .summary-stats {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
 }
 
 .summary-stat {
@@ -125,9 +149,11 @@
   gap: 12px;
   padding: 12px;
   position: relative;
+  width: 100%;
 }
 
-.toolbar-panel .MuiTextField-root {
+.toolbar-panel .MuiTextField-root,
+.toolbar-panel .MuiFormControl-root {
   min-width: 260px;
 }
 
@@ -139,6 +165,7 @@
 .MuiDataGrid-root {
   background: #fff;
   border-color: #dce5f0;
+  max-width: 100%;
 }
 
 .MuiDataGrid-columnHeaders {
@@ -168,16 +195,32 @@
     gap: 12px;
   }
 
+  .header-row > .MuiBox-root,
+  .header-row > .MuiStack-root {
+    width: 100%;
+  }
+
+  .header-row > .MuiStack-root {
+    justify-content: flex-start;
+  }
+
+  .header-row > .MuiStack-root .MuiButton-root {
+    width: fit-content;
+  }
+
+  .section-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
   .detail-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .summary-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .toolbar-panel .MuiTextField-root {
+  .toolbar-panel .MuiTextField-root,
+  .toolbar-panel .MuiFormControl-root {
     min-width: 0;
+    width: 100%;
   }
 
   .toolbar-result {
@@ -186,7 +229,49 @@
 }
 
 @media (max-width: 520px) {
-  .summary-stats {
-    grid-template-columns: minmax(0, 1fr);
+  .header-row .MuiTypography-h4 {
+    font-size: 1.34rem;
+    line-height: 1.28;
+  }
+
+  .header-row .MuiTypography-colorTextSecondary {
+    font-size: 0.88rem;
+  }
+
+  .section-card .MuiCardContent-root {
+    padding: 14px 12px 16px;
+  }
+
+  .section-header {
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .section-header .MuiTypography-h5 {
+    font-size: 1rem;
+  }
+
+  .summary-stat {
+    min-height: 62px;
+    padding: 10px 12px;
+  }
+
+  .toolbar-panel {
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .toolbar-panel .MuiButton-root {
+    width: 100%;
+  }
+
+  .compact-row,
+  .contract-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .compact-row .MuiIconButton-root {
+    align-self: flex-end;
   }
 }

@@ -53,6 +53,9 @@ type ApiEngineerMatchesResponse = {
     }
     score: number
   }[]
+  pagination: {
+    total: number
+  }
 }
 
 export type SkillOption = {
@@ -155,21 +158,24 @@ export const projectApi = {
     })
     return toProject(response, response)
   },
-  listMyMatches: async (): Promise<Project[]> => {
-    const response = await apiRequest<ApiEngineerMatchesResponse>('/engineers/me/matches?page=1&limit=20')
-    return response.matches.map((match) =>
-      toProject(
-        {
-          ...match.project,
-          endDate: '',
-          status: 'open',
-          ownerSales: { name: match.project.ownerSalesName },
-          assignedCount: 0,
-        },
-        undefined,
-        match.score,
+  listMyMatches: async ({ page = 0, pageSize = 20 }: Partial<PageRequest> = {}): Promise<PageResponse<Project>> => {
+    const response = await apiRequest<ApiEngineerMatchesResponse>(`/engineers/me/matches?page=${page + 1}&limit=${pageSize}`)
+    return {
+      items: response.matches.map((match) =>
+        toProject(
+          {
+            ...match.project,
+            endDate: '',
+            status: 'open',
+            ownerSales: { name: match.project.ownerSalesName },
+            assignedCount: 0,
+          },
+          undefined,
+          match.score,
+        ),
       ),
-    )
+      total: response.pagination.total,
+    }
   },
   listSkills: async (): Promise<SkillOption[]> => apiRequest<SkillOption[]>('/skills'),
 }

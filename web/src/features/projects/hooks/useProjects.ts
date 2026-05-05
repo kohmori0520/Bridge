@@ -19,7 +19,14 @@ export function useProject(projectId: number, enabled = true) {
 export function useMyProjectMatches() {
   return useQuery({
     queryKey: ['me', 'matches'],
-    queryFn: projectApi.listMyMatches,
+    queryFn: () => projectApi.listMyMatches(),
+  })
+}
+
+export function useEngineerProjectList(page: number, pageSize: number) {
+  return useQuery({
+    queryKey: ['projects', 'engineer-matches', page, pageSize],
+    queryFn: () => projectApi.listMyMatches({ page, pageSize }),
   })
 }
 

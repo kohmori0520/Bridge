@@ -9,6 +9,7 @@ namespace Bridge.Api.Services.Matching;
 public class MatchingService : IMatchingService
 {
     private const int MaxLimit = 100;
+    private const int MaxScoringCandidates = 300;
 
     private readonly BridgeDbContext _db;
 
@@ -31,7 +32,17 @@ public class MatchingService : IMatchingService
 
         if (project is null) return null;
 
-        // MVP:稼働中の技術者(Active な Assignment を持つ)は除外、空きのみ対象
+        var projectSkillIds = project.RequiredSkills
+            .Select(rs => rs.SkillId)
+            .Distinct()
+            .ToList();
+        var projectCategories = project.RequiredSkills
+            .Select(rs => rs.Skill.Category)
+            .Distinct()
+            .ToList();
+
+        // MVP:稼働中の技術者(Active な Assignment を持つ)は除外、空きのみ対象。
+        // スキル一致・希望一致がある候補を優先し、スコアリング対象の上限を設ける。
         var availableEngineers = await _db.Engineers
             .Include(e => e.PrimarySales)
             .Include(e => e.Skills).ThenInclude(es => es.Skill)
@@ -41,6 +52,15 @@ public class MatchingService : IMatchingService
             .AsSplitQuery()
             .AsNoTracking()
             .Where(e => !e.Assignments.Any(a => a.Status == AssignmentStatus.Active))
+            .Where(e =>
+                e.Skills.Any(s => projectSkillIds.Contains(s.SkillId)) ||
+                e.PreferredSkills.Any(ps => projectSkillIds.Contains(ps.SkillId)) ||
+                e.PreferredCategories.Any(pc => projectCategories.Contains(pc.Category)))
+            .OrderByDescending(e => e.Skills.Count(s => projectSkillIds.Contains(s.SkillId)))
+            .ThenByDescending(e => e.PreferredSkills.Count(ps => projectSkillIds.Contains(ps.SkillId)))
+            .ThenByDescending(e => e.PreferredCategories.Count(pc => projectCategories.Contains(pc.Category)))
+            .ThenBy(e => e.Id)
+            .Take(MaxScoringCandidates)
             .ToListAsync();
 
         // ---- スコア計算は MatchingScorer に委譲 ----
@@ -102,13 +122,39 @@ public class MatchingService : IMatchingService
 
         if (engineer is null) return null;
 
-        // 公開中の案件(Status == Open、論理削除されていないもの)
+        var engineerSkillIds = engineer.Skills
+            .Select(s => s.SkillId)
+            .Distinct()
+            .ToList();
+        var preferredSkillIds = engineer.PreferredSkills
+            .Select(ps => ps.SkillId)
+            .Distinct()
+            .ToList();
+        var preferredCategories = engineer.PreferredCategories
+            .Select(pc => pc.Category)
+            .Distinct()
+            .ToList();
+
+        var candidateSkillIds = engineerSkillIds
+            .Concat(preferredSkillIds)
+            .Distinct()
+            .ToList();
+
+        // 公開中の案件(Status == Open、論理削除されていないもの)から、スキル一致・希望一致がある候補を優先する。
         var openProjects = await _db.Projects
             .Include(p => p.OwnerSales)
             .Include(p => p.RequiredSkills).ThenInclude(rs => rs.Skill)
             .AsSplitQuery()
             .AsNoTracking()
             .Where(p => p.Status == ProjectStatus.Open)
+            .Where(p =>
+                p.RequiredSkills.Any(rs => candidateSkillIds.Contains(rs.SkillId)) ||
+                p.RequiredSkills.Any(rs => preferredCategories.Contains(rs.Skill.Category)))
+            .OrderByDescending(p => p.RequiredSkills.Count(rs => engineerSkillIds.Contains(rs.SkillId)))
+            .ThenByDescending(p => p.RequiredSkills.Count(rs => preferredSkillIds.Contains(rs.SkillId)))
+            .ThenByDescending(p => p.RequiredSkills.Count(rs => preferredCategories.Contains(rs.Skill.Category)))
+            .ThenBy(p => p.Id)
+            .Take(MaxScoringCandidates)
             .ToListAsync();
 
         var scored = openProjects

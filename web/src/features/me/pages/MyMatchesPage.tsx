@@ -5,7 +5,8 @@ import { MatchProjectRow } from '../../matching/components/MatchProjectRow'
 import { useMyProjectMatches } from '../../projects/hooks/useProjects'
 
 export function MyMatchesPage() {
-  const { data: sortedProjects = [] } = useMyProjectMatches()
+  const { data } = useMyProjectMatches()
+  const sortedProjects = data?.items ?? []
 
   return (
     <Stack spacing={2}>

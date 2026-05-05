@@ -7,3 +7,13 @@
   border-radius: 8px;
   padding: 4px 6px;
 }
+
+@media (max-width: 520px) {
+  .contract-current {
+    padding: 12px;
+  }
+
+  .contract-row {
+    padding: 8px;
+  }
+}

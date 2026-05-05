@@ -12,6 +12,7 @@ public class EngineerSummary
     public string Name { get; set; } = string.Empty;
     public PrimarySalesDto? PrimarySales { get; set; }
     public bool IsAvailable { get; set; }
+    public CurrentContractDto? CurrentContract { get; set; }
     public List<EngineerSkillDto> Skills { get; set; } = new();
 }
 

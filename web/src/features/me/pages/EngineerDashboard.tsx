@@ -9,8 +9,9 @@ import { MatchProjectRow } from '../../matching/components/MatchProjectRow'
 import { useMyProjectMatches } from '../../projects/hooks/useProjects'
 
 export function EngineerDashboard() {
-  const { data: matchedProjects = [] } = useMyProjectMatches()
+  const { data: matchedProjectPage } = useMyProjectMatches()
   const { data: me } = useMyEngineer()
+  const matchedProjects = matchedProjectPage?.items ?? []
   const currentProject = me?.project && me.project !== '-' ? me.project : '案件未割当'
   const unitPrice = me?.unitPrice && me.unitPrice !== '-' ? `${me.unitPrice}円 / 月` : '-'
   const periodTo = me?.availableFrom && me.availableFrom !== '-' ? me.availableFrom : '-'

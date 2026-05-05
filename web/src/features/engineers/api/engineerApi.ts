@@ -14,6 +14,11 @@ type ApiEngineerSummary = {
     name: string
   } | null
   isAvailable: boolean
+  currentContract?: {
+    projectTitle: string
+    periodTo: string
+    unitPrice: number
+  } | null
   skills: {
     skillId?: number
     skillName: string
@@ -31,11 +36,6 @@ type ApiEngineerDetail = ApiEngineerSummary & {
     category: string
   }[]
   preferredCategories: string[]
-  currentContract?: {
-    projectTitle: string
-    periodTo: string
-    unitPrice: number
-  } | null
 }
 
 export type EngineerProfile = {

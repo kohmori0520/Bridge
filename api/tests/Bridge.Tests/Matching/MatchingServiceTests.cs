@@ -64,6 +64,50 @@ public class MatchingServiceTests
         secondPage.Matches[0].Project.Id.Should().Be(fixture.WeakProjectId);
     }
 
+    [Fact]
+    public async Task GetMatchesForProjectAsync_LimitsScoringCandidatesAfterPrioritizingSkillMatches()
+    {
+        await using var db = CreateDbContext();
+        var react = new Skill { Name = "React", Category = SkillCategory.Framework };
+        var sales = new Sales { Name = "佐藤 営業" };
+        var project = new Project
+        {
+            OwnerSales = sales,
+            Title = "React 大規模案件",
+            ClientName = "A社",
+            StartDate = new DateOnly(2026, 6, 1),
+            EndDate = new DateOnly(2026, 12, 31),
+            Status = ProjectStatus.Open,
+            RequiredSkills =
+            {
+                new ProjectRequiredSkill { Skill = react, RequirementType = RequirementType.Required, RequiredYears = 1 },
+            },
+        };
+        db.Projects.Add(project);
+
+        for (var i = 0; i < 305; i++)
+        {
+            db.Engineers.Add(new Engineer
+            {
+                Name = $"候補 {i:000}",
+                Skills =
+                {
+                    new EngineerSkill { Skill = react, Years = i == 304 ? 10 : 1 },
+                },
+            });
+        }
+
+        await db.SaveChangesAsync();
+        var service = new MatchingService(db);
+
+        var result = await service.GetMatchesForProjectAsync(project.Id, page: 1, limit: 100);
+
+        result.Should().NotBeNull();
+        result!.Pagination.Total.Should().Be(300);
+        result.Matches.Should().HaveCount(100);
+        result.Matches.Should().NotContain(m => m.Engineer.Name == "候補 304");
+    }
+
     private static BridgeDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<BridgeDbContext>()

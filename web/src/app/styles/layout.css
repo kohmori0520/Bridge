@@ -9,6 +9,7 @@
   min-height: 58px;
   gap: 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  flex-wrap: wrap;
 }
 
 .brand {
@@ -23,6 +24,14 @@
   display: flex;
   gap: 12px;
   margin-left: auto;
+  min-width: 0;
+}
+
+.user-area .MuiTypography-root {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .nav-tabs {
@@ -58,20 +67,18 @@
 }
 
 @media (max-width: 900px) {
-  .topbar,
-  .user-area {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
   .topbar {
     align-items: flex-start;
+    flex-direction: column;
     padding-bottom: 10px;
     padding-top: 10px;
   }
 
   .user-area {
+    flex-wrap: wrap;
+    justify-content: space-between;
     margin-left: 0;
+    width: 100%;
   }
 
   .two-column {
@@ -86,5 +93,48 @@
   .nav-tabs .MuiTab-root {
     min-width: 112px;
     padding-inline: 12px;
+  }
+}
+
+@media (max-width: 600px) {
+  .app-shell {
+    background: #f5f7fb;
+  }
+
+  .topbar {
+    gap: 10px;
+    padding-inline: 14px;
+  }
+
+  .brand {
+    font-size: 1.05rem;
+  }
+
+  .user-area {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .user-area .MuiButton-root {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .nav-tabs {
+    min-height: 40px;
+  }
+
+  .nav-tabs .MuiTab-root {
+    font-size: 0.78rem;
+    min-height: 40px;
+    min-width: 96px;
+    padding-inline: 10px;
+  }
+
+  .page-container {
+    padding-bottom: 28px;
+    padding-inline: 10px;
+    padding-top: 12px;
   }
 }

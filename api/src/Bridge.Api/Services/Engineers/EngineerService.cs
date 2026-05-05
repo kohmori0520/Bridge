@@ -38,6 +38,7 @@ public class EngineerService : IEngineerService
 
     public async Task<EngineerListResponse> ListAsync(EngineerListQuery query)
     {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var queryable = _db.Engineers
             .AsNoTracking()
             .AsQueryable();
@@ -54,39 +55,20 @@ public class EngineerService : IEngineerService
             queryable = queryable.Where(e => e.Assignments.Any(a => a.Status == AssignmentStatus.Active));
 
         var total = await queryable.CountAsync();
-        var items = await queryable
+        var engineers = await queryable
+            .Include(e => e.PrimarySales)
+            .Include(e => e.Skills).ThenInclude(es => es.Skill)
+            .Include(e => e.Assignments).ThenInclude(a => a.Project)
+            .Include(e => e.Assignments).ThenInclude(a => a.Contracts)
+            .AsSplitQuery()
             .OrderBy(e => e.Id)
             .Skip((query.Page - 1) * query.Limit)
             .Take(query.Limit)
-            .Select(e => new EngineerSummary
-            {
-                Id = e.Id,
-                Name = e.Name,
-                PrimarySales = e.PrimarySales == null ? null : new PrimarySalesDto
-                {
-                    Id = e.PrimarySales.Id,
-                    Name = e.PrimarySales.Name,
-                    Department = e.PrimarySales.Department,
-                    Email = string.Empty,  // 一覧では不要
-                },
-                IsAvailable = !e.Assignments.Any(a => a.Status == AssignmentStatus.Active),
-                Skills = e.Skills
-                    .OrderBy(s => s.Skill.Category)
-                    .ThenBy(s => s.Skill.Id)
-                    .Select(s => new EngineerSkillDto
-                    {
-                        SkillId = s.SkillId,
-                        SkillName = s.Skill.Name,
-                        Category = s.Skill.Category.ToString(),
-                        Years = s.Years,
-                    })
-                    .ToList(),
-            })
             .ToListAsync();
 
         return new EngineerListResponse
         {
-            Items = items,
+            Items = engineers.Select(e => MapToSummary(e, today)).ToList(),
             Pagination = new PaginationDto
             {
                 Page = query.Page,
@@ -131,31 +113,6 @@ public class EngineerService : IEngineerService
 
     private static EngineerDetailResponse MapToDetail(Engineer engineer, DateOnly today)
     {
-        var activeAssignment = engineer.Assignments
-            .FirstOrDefault(a => a.Status == AssignmentStatus.Active);
-
-        CurrentContractDto? currentContract = null;
-        if (activeAssignment is not null)
-        {
-            var status = ContractStatusCalculator.Calculate(activeAssignment, today);
-            if (status.CurrentContract is not null)
-            {
-                currentContract = new CurrentContractDto
-                {
-                    AssignmentId = activeAssignment.Id,
-                    ProjectId = activeAssignment.Project.Id,
-                    ProjectTitle = activeAssignment.Project.Title,
-                    ClientName = activeAssignment.Project.ClientName,
-                    PeriodFrom = status.CurrentContract.PeriodFrom,
-                    PeriodTo = status.CurrentContract.PeriodTo,
-                    UnitPrice = status.CurrentContract.UnitPrice,
-                    ContractType = status.CurrentContract.ContractType.ToString().ToLowerInvariant(),
-                    DaysRemaining = status.DaysRemaining ?? 0,
-                    RenewalStatus = status.RenewalStatus.ToApiString(),
-                };
-            }
-        }
-
         return new EngineerDetailResponse
         {
             Id = engineer.Id,
@@ -185,7 +142,67 @@ public class EngineerService : IEngineerService
             PreferredCategories = engineer.PreferredCategories
                 .Select(pc => pc.Category.ToString())
                 .ToList(),
-            CurrentContract = currentContract,
+            CurrentContract = MapCurrentContract(engineer, today),
+        };
+    }
+
+    private static EngineerSummary MapToSummary(Engineer engineer, DateOnly today)
+    {
+        return new EngineerSummary
+        {
+            Id = engineer.Id,
+            Name = engineer.Name,
+            PrimarySales = engineer.PrimarySales == null ? null : new PrimarySalesDto
+            {
+                Id = engineer.PrimarySales.Id,
+                Name = engineer.PrimarySales.Name,
+                Department = engineer.PrimarySales.Department,
+                Email = string.Empty,
+            },
+            IsAvailable = !engineer.Assignments.Any(a => a.Status == AssignmentStatus.Active),
+            CurrentContract = MapCurrentContract(engineer, today),
+            Skills = engineer.Skills
+                .OrderBy(s => s.Skill.Category)
+                .ThenBy(s => s.Skill.Id)
+                .Select(s => new EngineerSkillDto
+                {
+                    SkillId = s.SkillId,
+                    SkillName = s.Skill.Name,
+                    Category = s.Skill.Category.ToString(),
+                    Years = s.Years,
+                })
+                .ToList(),
+        };
+    }
+
+    private static CurrentContractDto? MapCurrentContract(Engineer engineer, DateOnly today)
+    {
+        var activeAssignment = engineer.Assignments
+            .FirstOrDefault(a => a.Status == AssignmentStatus.Active);
+
+        if (activeAssignment is null)
+        {
+            return null;
+        }
+
+        var status = ContractStatusCalculator.Calculate(activeAssignment, today);
+        if (status.CurrentContract is null)
+        {
+            return null;
+        }
+
+        return new CurrentContractDto
+        {
+            AssignmentId = activeAssignment.Id,
+            ProjectId = activeAssignment.Project.Id,
+            ProjectTitle = activeAssignment.Project.Title,
+            ClientName = activeAssignment.Project.ClientName,
+            PeriodFrom = status.CurrentContract.PeriodFrom,
+            PeriodTo = status.CurrentContract.PeriodTo,
+            UnitPrice = status.CurrentContract.UnitPrice,
+            ContractType = status.CurrentContract.ContractType.ToString().ToLowerInvariant(),
+            DaysRemaining = status.DaysRemaining ?? 0,
+            RenewalStatus = status.RenewalStatus.ToApiString(),
         };
     }
 }

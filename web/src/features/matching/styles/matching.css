@@ -27,6 +27,7 @@
 
 .score-progress {
   max-width: 360px;
+  width: 100%;
 }
 
 .candidate-card {
@@ -56,6 +57,10 @@
   padding: 8px 10px;
 }
 
+.evaluation-row .MuiTypography-root {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 900px) {
   .candidate-header,
   .candidate-footer {
@@ -68,6 +73,10 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .match-project-row .MuiButton-root {
+    justify-self: flex-start;
+  }
+
   .score-badge {
     align-items: baseline;
     flex-direction: row;
@@ -78,5 +87,24 @@
 
   .evaluation-row {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .match-project-row,
+  .candidate-card {
+    padding: 12px;
+  }
+
+  .score-badge {
+    width: 100%;
+  }
+
+  .match-project-row .MuiButton-root {
+    width: 100%;
+  }
+
+  .candidate-footer .MuiButton-root {
+    width: 100%;
   }
 }

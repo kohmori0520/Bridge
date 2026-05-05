@@ -42,6 +42,16 @@ public class EngineerServiceTests
                     Project = CreateProject(sales, "稼働中案件"),
                     AssignedAt = new DateOnly(2026, 5, 1),
                     Status = AssignmentStatus.Active,
+                    Contracts =
+                    {
+                        new Contract
+                        {
+                            PeriodFrom = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-5),
+                            PeriodTo = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(25),
+                            UnitPrice = 900000,
+                            ContractType = ContractType.Initial,
+                        },
+                    },
                 },
             },
         };
@@ -60,6 +70,10 @@ public class EngineerServiceTests
         result.Pagination.Total.Should().Be(1);
         result.Items[0].Name.Should().Be("鈴木 花子");
         result.Items[0].IsAvailable.Should().BeFalse();
+        var currentContract = result.Items[0].CurrentContract;
+        currentContract.Should().NotBeNull();
+        currentContract!.ProjectTitle.Should().Be("稼働中案件");
+        currentContract.UnitPrice.Should().Be(900000);
         result.Items[0].Skills.Select(s => s.SkillName).Should().Contain(new[] { "React", "TypeScript" });
     }
 

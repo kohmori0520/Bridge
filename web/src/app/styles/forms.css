@@ -4,6 +4,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.form-grid .MuiTextField-root,
+.form-grid .MuiFormControl-root,
+.form-grid .MuiAutocomplete-root {
+  min-width: 0;
+}
+
 .skill-edit-row {
   align-items: flex-start;
   display: grid;
@@ -11,9 +17,28 @@
   grid-template-columns: minmax(220px, 1fr) 120px 100px 42px;
 }
 
+.skill-edit-row .MuiTextField-root,
+.skill-edit-row .MuiFormControl-root {
+  min-width: 0;
+}
+
 @media (max-width: 900px) {
   .form-grid,
   .skill-edit-row {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .skill-edit-row .MuiIconButton-root {
+    justify-self: flex-end;
+  }
+}
+
+@media (max-width: 520px) {
+  .form-grid {
+    gap: 12px;
+  }
+
+  .skill-edit-row {
+    gap: 8px;
   }
 }
