@@ -1,16 +1,19 @@
 import { Edit } from '@mui/icons-material'
 import { Box, Button, Stack } from '@mui/material'
 import { Link as RouterLink, useParams } from 'react-router-dom'
+import { useAuth } from '../../../auth/useAuth'
 import { ChipList } from '../../../shared/components/ChipList'
 import { EmptyState } from '../../../shared/components/EmptyState'
 import { Info } from '../../../shared/components/Info'
 import { LoadingState } from '../../../shared/components/LoadingState'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { AssignSalesPanel } from '../components/AssignSalesPanel'
 import { ContractList } from '../../contracts/components/ContractList'
 import { useEngineer } from '../hooks/useEngineers'
 
 export function EngineerDetailPage() {
+  const { user } = useAuth()
   const { id } = useParams()
   const engineerId = Number(id)
   const isValidId = Number.isFinite(engineerId) && engineerId > 0
@@ -57,6 +60,11 @@ export function EngineerDetailPage() {
           </Stack>
         </Section>
       </Box>
+      {user?.role === 'Admin' && (
+        <Section title="担当営業の変更(管理者)">
+          <AssignSalesPanel engineerId={engineer.id} currentSalesId={engineer.primarySalesId} />
+        </Section>
+      )}
       <Section title="契約履歴">
         <ContractList />
       </Section>

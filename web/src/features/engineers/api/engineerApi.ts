@@ -10,6 +10,7 @@ type ApiEngineerSummary = {
   id: number
   name: string
   primarySales?: {
+    id: number
     name: string
   } | null
   isAvailable: boolean
@@ -85,6 +86,7 @@ function toEngineer(response: ApiEngineerSummary | ApiEngineerDetail): Engineer 
     project: detail.currentContract?.projectTitle ?? '-',
     availableFrom: detail.currentContract?.periodTo ?? '-',
     sales: response.primarySales?.name ?? '未設定',
+    primarySalesId: response.primarySales?.id ?? null,
     unitPrice: formatUnitPrice(detail.currentContract?.unitPrice),
     skills: response.skills.map((skill) => ({
       skillId: skill.skillId,
@@ -119,9 +121,17 @@ function toEngineerProfile(response: ApiEngineerDetail): EngineerProfile {
   }
 }
 
+export type EngineerListFilter = PageRequest & {
+  primarySalesId?: 'me' | number
+}
+
 export const engineerApi = {
-  list: async ({ page, pageSize }: PageRequest): Promise<PageResponse<Engineer>> => {
-    const response = await apiRequest<ApiEngineerListResponse>(`/engineers?page=${page + 1}&limit=${pageSize}`)
+  list: async ({ page, pageSize, primarySalesId }: EngineerListFilter): Promise<PageResponse<Engineer>> => {
+    const params = new URLSearchParams({ page: String(page + 1), limit: String(pageSize) })
+    if (primarySalesId !== undefined) {
+      params.set('primarySalesId', String(primarySalesId))
+    }
+    const response = await apiRequest<ApiEngineerListResponse>(`/engineers?${params.toString()}`)
     return {
       items: response.items.map(toEngineer),
       total: response.pagination.total,
@@ -131,6 +141,10 @@ export const engineerApi = {
     const response = await apiRequest<ApiEngineerDetail>(`/engineers/${id}`)
     return toEngineer(response)
   },
+  getMe: async (): Promise<Engineer> => {
+    const response = await apiRequest<ApiEngineerDetail>('/engineers/me')
+    return toEngineer(response)
+  },
   getProfile: async (id: number): Promise<EngineerProfile> => {
     const response = await apiRequest<ApiEngineerDetail>(`/engineers/${id}`)
     return toEngineerProfile(response)
@@ -138,6 +152,12 @@ export const engineerApi = {
   getMyProfile: async (): Promise<EngineerProfile> => {
     const response = await apiRequest<ApiEngineerDetail>('/engineers/me')
     return toEngineerProfile(response)
+  },
+  assignSales: async (id: number, primarySalesId: number | null): Promise<void> => {
+    await apiRequest(`/engineers/${id}/sales`, {
+      method: 'PUT',
+      body: JSON.stringify({ primarySalesId }),
+    })
   },
   saveProfile: async (id: number, input: SaveEngineerProfileInput): Promise<EngineerProfile> => {
     await apiRequest<ApiEngineerDetail>(`/engineers/${id}`, {

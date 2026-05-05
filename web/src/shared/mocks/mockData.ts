@@ -92,6 +92,7 @@ export const engineers: Engineer[] = [
     project: '金融系Webアプリ開発',
     availableFrom: '2025-06-01',
     sales: '佐藤 営業',
+    primarySalesId: 1,
     unitPrice: '85万',
     skills: [
       { name: 'React', years: 5 },
@@ -112,6 +113,7 @@ export const engineers: Engineer[] = [
     project: '新規Webサービス立ち上げ',
     availableFrom: '2025-05-01',
     sales: '佐藤 営業',
+    primarySalesId: 1,
     unitPrice: '82万',
     skills: [
       { name: 'TypeScript', years: 5 },
@@ -131,6 +133,7 @@ export const engineers: Engineer[] = [
     project: '-',
     availableFrom: '2025-05-01',
     sales: '佐藤 営業',
+    primarySalesId: 1,
     unitPrice: '78万',
     skills: [
       { name: 'C#', years: 6 },

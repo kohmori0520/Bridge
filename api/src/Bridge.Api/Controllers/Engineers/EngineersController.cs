@@ -97,6 +97,30 @@ public class EngineersController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPut("{id:int}/sales")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(typeof(EngineerDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AssignSales(int id, [FromBody] AssignSalesRequest request)
+    {
+        var result = await _service.AssignSalesAsync(id, request.PrimarySalesId);
+
+        switch (result)
+        {
+            case AssignSalesResult.EngineerNotFound:
+                return NotFound();
+            case AssignSalesResult.SalesNotFound:
+                return BadRequest(new
+                {
+                    error = new { code = "SALES_NOT_FOUND", message = "指定された担当営業が存在しません" }
+                });
+        }
+
+        var detail = await _service.GetByIdAsync(id);
+        return Ok(detail);
+    }
+
     private int? ResolvePrimarySalesId(string? raw)
     {
         if (string.IsNullOrEmpty(raw)) return null;

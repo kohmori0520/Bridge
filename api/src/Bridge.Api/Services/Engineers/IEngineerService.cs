@@ -7,6 +7,14 @@ public interface IEngineerService
     Task<EngineerDetailResponse?> GetByIdAsync(int id);
     Task<EngineerListResponse> ListAsync(EngineerListQuery query);
     Task<EngineerDetailResponse?> UpdateAsync(int id, UpdateEngineerRequest request);
+    Task<AssignSalesResult> AssignSalesAsync(int engineerId, int? primarySalesId);
+}
+
+public enum AssignSalesResult
+{
+    Updated,
+    EngineerNotFound,
+    SalesNotFound,
 }
 
 public class EngineerListQuery

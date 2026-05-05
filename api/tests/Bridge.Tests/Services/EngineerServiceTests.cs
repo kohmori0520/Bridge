@@ -138,6 +138,67 @@ public class EngineerServiceTests
         stored.UpdatedAt.Should().BeAfter(stored.CreatedAt.AddTicks(-1));
     }
 
+    [Fact]
+    public async Task AssignSalesAsync_UpdatesPrimarySales_WhenSalesExists()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var oldSales = new Sales { Name = "旧担当", Department = "Sales" };
+        var newSales = new Sales { Name = "新担当", Department = "Sales" };
+        var engineer = new Engineer { Name = "田中 太郎", PrimarySales = oldSales };
+        db.Engineers.Add(engineer);
+        db.Sales.Add(newSales);
+        await db.SaveChangesAsync();
+        var service = new EngineerService(db);
+
+        var result = await service.AssignSalesAsync(engineer.Id, newSales.Id);
+
+        result.Should().Be(AssignSalesResult.Updated);
+        var stored = await db.Engineers.SingleAsync(e => e.Id == engineer.Id);
+        stored.PrimarySalesId.Should().Be(newSales.Id);
+    }
+
+    [Fact]
+    public async Task AssignSalesAsync_ClearsPrimarySales_WhenIdIsNull()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var sales = new Sales { Name = "営業", Department = "Sales" };
+        var engineer = new Engineer { Name = "田中 太郎", PrimarySales = sales };
+        db.Engineers.Add(engineer);
+        await db.SaveChangesAsync();
+        var service = new EngineerService(db);
+
+        var result = await service.AssignSalesAsync(engineer.Id, null);
+
+        result.Should().Be(AssignSalesResult.Updated);
+        var stored = await db.Engineers.SingleAsync(e => e.Id == engineer.Id);
+        stored.PrimarySalesId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AssignSalesAsync_ReturnsEngineerNotFound_WhenEngineerMissing()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var service = new EngineerService(db);
+
+        var result = await service.AssignSalesAsync(9999, null);
+
+        result.Should().Be(AssignSalesResult.EngineerNotFound);
+    }
+
+    [Fact]
+    public async Task AssignSalesAsync_ReturnsSalesNotFound_WhenSalesMissing()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-engineer-service-tests");
+        var engineer = new Engineer { Name = "田中 太郎" };
+        db.Engineers.Add(engineer);
+        await db.SaveChangesAsync();
+        var service = new EngineerService(db);
+
+        var result = await service.AssignSalesAsync(engineer.Id, 9999);
+
+        result.Should().Be(AssignSalesResult.SalesNotFound);
+    }
+
     private static Project CreateProject(Sales sales, string title)
     {
         return new Project

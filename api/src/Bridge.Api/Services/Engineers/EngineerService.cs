@@ -111,6 +111,24 @@ public class EngineerService : IEngineerService
         return await GetByIdAsync(id);
     }
 
+    public async Task<AssignSalesResult> AssignSalesAsync(int engineerId, int? primarySalesId)
+    {
+        var engineer = await _db.Engineers.FirstOrDefaultAsync(e => e.Id == engineerId);
+        if (engineer is null) return AssignSalesResult.EngineerNotFound;
+
+        if (primarySalesId.HasValue)
+        {
+            var salesExists = await _db.Sales.AnyAsync(s => s.Id == primarySalesId.Value);
+            if (!salesExists) return AssignSalesResult.SalesNotFound;
+        }
+
+        engineer.PrimarySalesId = primarySalesId;
+        engineer.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return AssignSalesResult.Updated;
+    }
+
     private static EngineerDetailResponse MapToDetail(Engineer engineer, DateOnly today)
     {
         var activeAssignment = engineer.Assignments

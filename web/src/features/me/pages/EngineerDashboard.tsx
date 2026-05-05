@@ -4,11 +4,17 @@ import { Link as RouterLink } from 'react-router-dom'
 import { Info } from '../../../shared/components/Info'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { useMyEngineer } from '../../engineers/hooks/useEngineers'
 import { MatchProjectRow } from '../../matching/components/MatchProjectRow'
 import { useMyProjectMatches } from '../../projects/hooks/useProjects'
 
 export function EngineerDashboard() {
   const { data: matchedProjects = [] } = useMyProjectMatches()
+  const { data: me } = useMyEngineer()
+  const currentProject = me?.project && me.project !== '-' ? me.project : '案件未割当'
+  const unitPrice = me?.unitPrice && me.unitPrice !== '-' ? `${me.unitPrice}円 / 月` : '-'
+  const periodTo = me?.availableFrom && me.availableFrom !== '-' ? me.availableFrom : '-'
+  const salesName = me?.sales ?? '未設定'
 
   return (
     <Stack spacing={2}>
@@ -18,10 +24,10 @@ export function EngineerDashboard() {
           要注意: 契約終了まで残り 23 日・更新未定
         </Alert>
         <div className="detail-grid">
-          <Info label="現在の案件" value="金融系Webアプリ開発(A銀行)" />
-          <Info label="契約期間" value="2025-03-01 〜 2025-05-31" />
-          <Info label="単価" value="85万円 / 月" />
-          <Info label="担当営業" value="佐藤 営業" />
+          <Info label="現在の案件" value={currentProject} />
+          <Info label="契約終了" value={periodTo} />
+          <Info label="単価" value={unitPrice} />
+          <Info label="担当営業" value={salesName} />
         </div>
       </Section>
       <Section title="キャリア志向" action={<Button component={RouterLink} to="/me/profile" endIcon={<Edit />}>編集する</Button>}>

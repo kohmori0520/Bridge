@@ -1,5 +1,6 @@
 import { RestartAlt, Search } from '@mui/icons-material'
 import { Button, FormControl, InputAdornment, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material'
+import type { ReactNode } from 'react'
 
 type ToolbarPanelProps = {
   keyword: string
@@ -10,6 +11,7 @@ type ToolbarPanelProps = {
   keywordPlaceholder?: string
   statusLabel?: string
   resultLabel?: string
+  extra?: ReactNode
 }
 
 export function ToolbarPanel({
@@ -21,6 +23,7 @@ export function ToolbarPanel({
   keywordPlaceholder = 'キーワード',
   statusLabel = 'ステータス',
   resultLabel,
+  extra,
 }: ToolbarPanelProps) {
   const hasFilter = keyword.trim().length > 0 || status !== 'all'
 
@@ -63,6 +66,7 @@ export function ToolbarPanel({
       >
         クリア
       </Button>
+      {extra}
       {resultLabel && (
         <Typography className="toolbar-result" variant="body2" color="text.secondary">
           {resultLabel}

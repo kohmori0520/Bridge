@@ -37,6 +37,7 @@ function toEngineer(engineer: ApiProjectMatchesResponse['matches'][number]['engi
     project: '-',
     availableFrom: '-',
     sales: engineer.primarySalesName || '未設定',
+    primarySalesId: null,
     unitPrice: '-',
     skills: [],
     categories: [],

@@ -48,6 +48,7 @@ export type Engineer = {
   project: string
   availableFrom: string
   sales: string
+  primarySalesId: number | null
   unitPrice: string
   skills: EngineerSkill[]
   categories: string[]

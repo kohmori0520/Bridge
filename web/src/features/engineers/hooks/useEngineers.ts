@@ -1,10 +1,15 @@
 import { useQuery } from '@tanstack/react-query'
 import { engineerApi } from '../api/engineerApi'
 
-export function useEngineers(page: number, pageSize: number) {
+type UseEngineersOptions = {
+  primarySalesId?: 'me' | number
+}
+
+export function useEngineers(page: number, pageSize: number, options: UseEngineersOptions = {}) {
+  const { primarySalesId } = options
   return useQuery({
-    queryKey: ['engineers', page, pageSize],
-    queryFn: () => engineerApi.list({ page, pageSize }),
+    queryKey: ['engineers', page, pageSize, primarySalesId ?? null],
+    queryFn: () => engineerApi.list({ page, pageSize, primarySalesId }),
   })
 }
 
@@ -13,6 +18,13 @@ export function useEngineer(engineerId: number, options: { enabled?: boolean } =
     queryKey: ['engineers', engineerId],
     queryFn: () => engineerApi.get(engineerId),
     enabled: options.enabled ?? true,
+  })
+}
+
+export function useMyEngineer() {
+  return useQuery({
+    queryKey: ['engineers', 'me'],
+    queryFn: () => engineerApi.getMe(),
   })
 }
 

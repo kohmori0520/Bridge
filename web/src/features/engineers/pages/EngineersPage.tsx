@@ -1,8 +1,9 @@
 import { Add, Visibility } from '@mui/icons-material'
-import { Button, Chip, IconButton, Stack, Tooltip } from '@mui/material'
+import { Button, Chip, FormControlLabel, IconButton, Stack, Switch, Tooltip } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
+import { useAuth } from '../../../auth/useAuth'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
@@ -12,10 +13,15 @@ import { useEngineers } from '../hooks/useEngineers'
 import type { Engineer } from '../../../shared/types/domain'
 
 export function EngineersPage() {
+  const { user } = useAuth()
+  const isSales = user?.role === 'Sales'
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
-  const { data, error, isLoading } = useEngineers(paginationModel.page, paginationModel.pageSize)
+  const [mineOnly, setMineOnly] = useState(isSales)
+  const { data, error, isLoading } = useEngineers(paginationModel.page, paginationModel.pageSize, {
+    primarySalesId: mineOnly && isSales ? 'me' : undefined,
+  })
   const columns: GridColDef<Engineer>[] = [
     { field: 'name', headerName: '氏名', flex: 1, minWidth: 150 },
     {
@@ -89,6 +95,14 @@ export function EngineersPage() {
         onKeywordChange={setKeyword}
         onStatusChange={setStatus}
         resultLabel={`${rows.length} / ${data?.total ?? 0} 名`}
+        extra={
+          isSales ? (
+            <FormControlLabel
+              control={<Switch checked={mineOnly} onChange={(event) => setMineOnly(event.target.checked)} />}
+              label="自分担当のみ"
+            />
+          ) : undefined
+        }
       />
       {error ? <ApiErrorAlert error={error} fallbackMessage="技術者一覧の取得に失敗しました。" /> : null}
       <Section title="技術者">
