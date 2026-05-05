@@ -51,7 +51,23 @@ export function MatchCandidateCard({ candidate }: MatchCandidateCardProps) {
         ))}
       </Stack>
       <Box className="candidate-footer">
-        <Chip size="small" color="success" label="希望カテゴリ一致: Web開発" />
+        {candidate.preferenceMatches.length > 0 ? (
+          candidate.preferenceMatches.slice(0, 3).map((match) => {
+            const label = match.matchType === 'preferred_category'
+              ? `${match.skillName}のカテゴリ`
+              : match.skillName
+            return (
+              <Chip
+                key={`${match.matchType}-${match.skillId ?? match.skillName}`}
+                size="small"
+                color="success"
+                label={`希望一致: ${label}`}
+              />
+            )
+          })
+        ) : (
+          <Chip size="small" variant="outlined" label="希望一致なし" />
+        )}
         <Button variant="contained" endIcon={<Work />}>
           この案件にアサイン
         </Button>

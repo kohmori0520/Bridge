@@ -7,6 +7,7 @@ import { useAuth } from '../../../auth/useAuth'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { SummaryStats } from '../../../shared/components/SummaryStats'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
 import { useProjects } from '../hooks/useProjects'
 import type { Project, Role } from '../../../shared/types/domain'
@@ -82,6 +83,10 @@ export function ProjectsPage() {
 
     return role === 'Engineer' ? filtered.slice().sort((a, b) => b.matchScore - a.matchScore) : filtered
   }, [data?.items, keyword, role, status])
+  const pageItems = data?.items ?? []
+  const openCount = pageItems.filter((project) => project.status === '募集中').length
+  const draftCount = pageItems.filter((project) => project.status === '下書き').length
+  const closedCount = pageItems.filter((project) => project.status === 'クローズ').length
 
   return (
     <Stack spacing={2}>
@@ -96,6 +101,14 @@ export function ProjectsPage() {
           ) : undefined
         }
       />
+      <SummaryStats
+        items={[
+          { label: '表示中', value: `${rows.length}件` },
+          { label: '募集中', value: `${openCount}件`, tone: 'success' },
+          ...(role === 'Sales' ? [{ label: '下書き', value: `${draftCount}件`, tone: 'warning' as const }] : []),
+          { label: 'クローズ', value: `${closedCount}件` },
+        ]}
+      />
       <ToolbarPanel
         keyword={keyword}
         status={status}
@@ -108,6 +121,7 @@ export function ProjectsPage() {
         keywordPlaceholder="案件名・クライアント・スキル"
         onKeywordChange={setKeyword}
         onStatusChange={setStatus}
+        resultLabel={`${rows.length} / ${data?.total ?? 0} 件`}
       />
       {error ? <ApiErrorAlert error={error} fallbackMessage="案件一覧の取得に失敗しました。" /> : null}
       <Section title={role === 'Sales' ? '案件' : '公開案件'}>

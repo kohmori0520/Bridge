@@ -55,7 +55,10 @@ npm run preview      # build 結果の確認
 | Role | Email | Password |
 |---|---|---|
 | Sales | `sato@bridge.local` | `Sales1234!` |
+| Sales | `yamada.sales@bridge.local` | `Sales1234!` |
 | Engineer | `tanaka@bridge.local` | `Engineer1234!` |
+| Engineer | `suzuki.hanako@bridge.local` | `Engineer1234!` |
+| Engineer | `aoki.mika@bridge.local` | `Engineer1234!` |
 
 ## API Integration
 

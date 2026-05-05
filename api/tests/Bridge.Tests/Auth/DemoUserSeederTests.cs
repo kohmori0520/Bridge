@@ -21,19 +21,33 @@ public class DemoUserSeederTests
             .Include(u => u.Engineer)
             .ToListAsync();
 
-        users.Should().HaveCount(3);
+        users.Should().HaveCount(11);
         users.Should().Contain(u => u.Email == "admin@bridge.local" && u.Role == UserRole.Admin);
         users.Should().Contain(u => u.Email == "sato@bridge.local" && u.Sales != null);
+        users.Should().Contain(u => u.Email == "yamada.sales@bridge.local" && u.Sales != null);
 
-        var engineer = await db.Engineers.Include(e => e.PrimarySales).SingleAsync();
+        var engineer = await db.Engineers
+            .Include(e => e.User)
+            .Include(e => e.PrimarySales)
+            .Include(e => e.Skills)
+            .SingleAsync(e => e.User.Email == "tanaka@bridge.local");
         engineer.User.Email.Should().Be("tanaka@bridge.local");
         engineer.PrimarySalesId.Should().NotBeNull();
         engineer.PrimarySales!.Name.Should().Be("佐藤 営業");
+        engineer.Skills.Should().NotBeEmpty();
         passwordHasher.Verify("Engineer1234!", engineer.User.PasswordHash).Should().BeTrue();
+
+        var projects = await db.Projects.Include(p => p.RequiredSkills).ToListAsync();
+        projects.Should().HaveCount(10);
+        projects.Should().Contain(p => p.Title == "SaaSフロントエンド開発" && p.RequiredSkills.Count >= 3);
+
+        var assignments = await db.Assignments.Include(a => a.Contracts).ToListAsync();
+        assignments.Should().HaveCount(5);
+        assignments.Should().OnlyContain(a => a.Contracts.Count > 0);
     }
 
     [Fact]
-    public async Task SeedAsync_DoesNothing_WhenAnyUserAlreadyExists()
+    public async Task SeedAsync_AddsMissingDemoData_WhenUserAlreadyExists()
     {
         await using var db = CreateDbContext();
         db.Users.Add(new()
@@ -47,8 +61,11 @@ public class DemoUserSeederTests
         await DemoUserSeeder.SeedAsync(db, new PasswordHasher());
 
         var users = await db.Users.ToListAsync();
-        users.Should().ContainSingle();
-        users[0].Email.Should().Be("existing@bridge.local");
+        users.Should().Contain(u => u.Email == "existing@bridge.local");
+        users.Should().Contain(u => u.Email == "admin@bridge.local");
+        users.Should().Contain(u => u.Email == "tanaka@bridge.local");
+        users.Should().HaveCount(12);
+        (await db.Projects.CountAsync()).Should().Be(10);
     }
 
     private static BridgeDbContext CreateDbContext()

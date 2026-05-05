@@ -1,4 +1,4 @@
-export type Role = 'Sales' | 'Engineer'
+export type Role = 'Admin' | 'Sales' | 'Engineer'
 
 export type User = {
   role: Role
@@ -34,6 +34,13 @@ export type Project = {
   matchScore: number
 }
 
+export type EngineerSkill = {
+  skillId?: number
+  name: string
+  years: number
+  category?: string
+}
+
 export type Engineer = {
   id: number
   name: string
@@ -42,9 +49,20 @@ export type Engineer = {
   availableFrom: string
   sales: string
   unitPrice: string
-  skills: string[]
+  skills: EngineerSkill[]
   categories: string[]
+  desiredTechnologies: string[]
+  desiredAreas: string[]
+  desiredRoles: string[]
   avoid: string[]
+}
+
+export type PreferenceMatchType = 'preferred_skill' | 'preferred_category'
+
+export type PreferenceMatch = {
+  skillId?: number
+  skillName: string
+  matchType: PreferenceMatchType
 }
 
 export type MatchCandidate = {
@@ -63,6 +81,7 @@ export type MatchCandidate = {
     actualYears: number | null
     status: 'matched' | 'insufficient' | 'unmet'
   }[]
+  preferenceMatches: PreferenceMatch[]
 }
 
 export type Contract = {

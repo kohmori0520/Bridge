@@ -18,9 +18,7 @@ public class ProjectService : IProjectService
     public async Task<ProjectListResponse> ListAsync(ProjectListQuery query)
     {
         var queryable = _db.Projects
-            .Include(p => p.OwnerSales)
-            .Include(p => p.Assignments)
-            .AsSplitQuery()
+            .AsNoTracking()
             .AsQueryable();
 
         if (query.OwnerSalesId.HasValue)
@@ -34,25 +32,30 @@ public class ProjectService : IProjectService
 
         var total = await queryable.CountAsync();
 
-        var projects = await queryable
+        var items = await queryable
             .OrderByDescending(p => p.CreatedAt)
             .Skip((query.Page - 1) * query.Limit)
             .Take(query.Limit)
+            .Select(p => new ProjectSummary
+            {
+                Id = p.Id,
+                Title = p.Title,
+                ClientName = p.ClientName,
+                StartDate = p.StartDate,
+                EndDate = p.EndDate,
+                UnitPriceMin = p.UnitPriceMin,
+                UnitPriceMax = p.UnitPriceMax,
+                Status = p.Status == ProjectStatus.Draft
+                    ? "draft"
+                    : p.Status == ProjectStatus.Open
+                        ? "open"
+                        : p.Status == ProjectStatus.Closed
+                            ? "closed"
+                            : "cancelled",
+                OwnerSales = new OwnerSalesDto { Id = p.OwnerSales.Id, Name = p.OwnerSales.Name },
+                AssignedCount = p.Assignments.Count(a => a.Status == AssignmentStatus.Active),
+            })
             .ToListAsync();
-
-        var items = projects.Select(p => new ProjectSummary
-        {
-            Id = p.Id,
-            Title = p.Title,
-            ClientName = p.ClientName,
-            StartDate = p.StartDate,
-            EndDate = p.EndDate,
-            UnitPriceMin = p.UnitPriceMin,
-            UnitPriceMax = p.UnitPriceMax,
-            Status = p.Status.ToString().ToLowerInvariant(),
-            OwnerSales = new OwnerSalesDto { Id = p.OwnerSales.Id, Name = p.OwnerSales.Name },
-            AssignedCount = p.Assignments.Count(a => a.Status == AssignmentStatus.Active),
-        }).ToList();
 
         return new ProjectListResponse
         {
@@ -67,6 +70,7 @@ public class ProjectService : IProjectService
             .Include(p => p.OwnerSales)
             .Include(p => p.RequiredSkills).ThenInclude(rs => rs.Skill)
             .AsSplitQuery()
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (project is null) return null;
@@ -190,6 +194,7 @@ public class ProjectService : IProjectService
     {
         var distinct = requestedIds.Distinct().ToList();
         var ids = await _db.Skills
+            .AsNoTracking()
             .Where(s => distinct.Contains(s.Id))
             .Select(s => s.Id)
             .ToListAsync();

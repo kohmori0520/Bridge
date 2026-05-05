@@ -2,6 +2,10 @@ import { apiRequest } from '../../../shared/api/http'
 import type { Engineer } from '../../../shared/types/domain'
 import type { PageRequest, PageResponse } from '../../projects/api/projectApi'
 
+const technologyCategories = new Set(['Language', 'Framework', 'Infrastructure', 'Database', 'Tool'])
+const areaCategories = new Set(['Domain', 'ProductType'])
+const roleCategories = new Set(['Role'])
+
 type ApiEngineerSummary = {
   id: number
   name: string
@@ -73,6 +77,7 @@ function formatUnitPrice(unitPrice?: number) {
 
 function toEngineer(response: ApiEngineerSummary | ApiEngineerDetail): Engineer {
   const detail = response as Partial<ApiEngineerDetail>
+  const preferredSkills = detail.preferredSkills ?? []
   return {
     id: response.id,
     name: response.name,
@@ -81,8 +86,16 @@ function toEngineer(response: ApiEngineerSummary | ApiEngineerDetail): Engineer 
     availableFrom: detail.currentContract?.periodTo ?? '-',
     sales: response.primarySales?.name ?? '未設定',
     unitPrice: formatUnitPrice(detail.currentContract?.unitPrice),
-    skills: response.skills.map((skill) => `${skill.skillName} ${skill.years}年`),
+    skills: response.skills.map((skill) => ({
+      skillId: skill.skillId,
+      name: skill.skillName,
+      years: skill.years,
+      category: skill.category,
+    })),
     categories: detail.preferredCategories ?? [],
+    desiredTechnologies: preferredSkills.filter((skill) => technologyCategories.has(skill.category)).map((skill) => skill.skillName),
+    desiredAreas: preferredSkills.filter((skill) => areaCategories.has(skill.category)).map((skill) => skill.skillName),
+    desiredRoles: preferredSkills.filter((skill) => roleCategories.has(skill.category)).map((skill) => skill.skillName),
     avoid: detail.avoidedWorkNote ? [detail.avoidedWorkNote] : [],
   }
 }

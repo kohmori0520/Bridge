@@ -76,6 +76,7 @@ public class AssignmentService : IAssignmentService
             .Include(a => a.Project)
             .Include(a => a.Contracts)
             .AsSplitQuery()
+            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (assignment is null) return null;
@@ -122,6 +123,7 @@ public class AssignmentService : IAssignmentService
             .Include(a => a.Project)
             .Include(a => a.Contracts)
             .AsSplitQuery()
+            .AsNoTracking()
             .Where(a => a.EngineerId == engineerId)
             .OrderByDescending(a => a.AssignedAt)
             .ToListAsync();
@@ -159,6 +161,7 @@ public class AssignmentService : IAssignmentService
 
         var assignment = await _db.Assignments
             .Include(a => a.Contracts)
+            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == assignmentId);
 
         if (assignment is null)

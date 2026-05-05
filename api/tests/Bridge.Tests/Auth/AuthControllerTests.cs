@@ -21,7 +21,7 @@ public class AuthControllerTests
         var passwordHasher = new PasswordHasher();
         var jwtService = CreateJwtService();
         var user = await SeedEngineerAsync(db, passwordHasher, "tanaka@bridge.local", "Password123!");
-        var controller = new AuthController(db, passwordHasher, jwtService);
+        var controller = new AuthController(new AuthService(db, passwordHasher, jwtService));
 
         var result = await controller.Login(new LoginRequest
         {
@@ -44,7 +44,7 @@ public class AuthControllerTests
     {
         await using var db = CreateDbContext();
         var passwordHasher = new PasswordHasher();
-        var controller = new AuthController(db, passwordHasher, CreateJwtService());
+        var controller = new AuthController(new AuthService(db, passwordHasher, CreateJwtService()));
         await SeedEngineerAsync(db, passwordHasher, "tanaka@bridge.local", "Password123!");
 
         var result = await controller.Login(new LoginRequest
@@ -60,7 +60,7 @@ public class AuthControllerTests
     public async Task Login_ReturnsUnauthorized_WhenUserDoesNotExist()
     {
         await using var db = CreateDbContext();
-        var controller = new AuthController(db, new PasswordHasher(), CreateJwtService());
+        var controller = new AuthController(new AuthService(db, new PasswordHasher(), CreateJwtService()));
 
         var result = await controller.Login(new LoginRequest
         {
@@ -77,7 +77,7 @@ public class AuthControllerTests
         await using var db = CreateDbContext();
         var passwordHasher = new PasswordHasher();
         var user = await SeedEngineerAsync(db, passwordHasher, "tanaka@bridge.local", "Password123!");
-        var controller = new AuthController(db, passwordHasher, CreateJwtService());
+        var controller = new AuthController(new AuthService(db, passwordHasher, CreateJwtService()));
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
@@ -101,7 +101,7 @@ public class AuthControllerTests
     public async Task Me_ReturnsUnauthorized_WhenSubClaimIsInvalid()
     {
         await using var db = CreateDbContext();
-        var controller = new AuthController(db, new PasswordHasher(), CreateJwtService());
+        var controller = new AuthController(new AuthService(db, new PasswordHasher(), CreateJwtService()));
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext

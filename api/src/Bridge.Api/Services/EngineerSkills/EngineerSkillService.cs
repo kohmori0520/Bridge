@@ -22,6 +22,7 @@ public class EngineerSkillService : IEngineerSkillService
 
         return await _db.EngineerSkills
             .Include(es => es.Skill)
+            .AsNoTracking()
             .Where(es => es.EngineerId == engineerId)
             .OrderBy(es => es.Skill.Category)
             .ThenBy(es => es.Skill.Id)
@@ -47,6 +48,7 @@ public class EngineerSkillService : IEngineerSkillService
 
         // 存在するスキルIDのみ受け付ける(ガード)
         var validSkillIds = await _db.Skills
+            .AsNoTracking()
             .Where(s => requestedMap.Keys.Contains(s.Id))
             .Select(s => s.Id)
             .ToListAsync();

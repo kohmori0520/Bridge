@@ -17,6 +17,8 @@ public class EngineerMatch
     public int Score { get; set; }
     public ScoreBreakdown ScoreBreakdown { get; set; } = new();
     public List<SkillEvaluation> SkillEvaluations { get; set; } = new();
+    public List<PreferenceMatch> PreferenceMatches { get; set; } = new();
+    public bool PreferredSkillMatched { get; set; }
     public bool CategoryPreferenceMatched { get; set; }
 }
 
@@ -44,6 +46,8 @@ public class ProjectMatch
     public int MaxPossibleScore { get; set; } = 100;
     public ScoreBreakdown ScoreBreakdown { get; set; } = new();
     public List<SkillEvaluation> SkillEvaluations { get; set; } = new();
+    public List<PreferenceMatch> PreferenceMatches { get; set; } = new();
+    public bool PreferredSkillMatched { get; set; }
     public bool CategoryPreferenceMatched { get; set; }
 }
 
@@ -75,6 +79,14 @@ public class SkillEvaluation
     public int RequiredYears { get; set; }
     public int ActualYears { get; set; }
     public string Status { get; set; } = string.Empty;        // "matched" | "insufficient" | "unmet"
+}
+
+public class PreferenceMatch
+{
+    public int SkillId { get; set; }
+    public string SkillName { get; set; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
+    public string MatchType { get; set; } = string.Empty;     // "preferred_skill" | "preferred_category"
 }
 
 public class PaginationDto

@@ -1,10 +1,8 @@
 using System.Security.Claims;
 using Bridge.Api.Dtos.Auth;
 using Bridge.Api.Services.Auth;
-using Bridge.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Bridge.Api.Controllers.Auth;
 
@@ -12,18 +10,11 @@ namespace Bridge.Api.Controllers.Auth;
 [Route("auth")]
 public class AuthController : ControllerBase
 {
-    private readonly BridgeDbContext _db;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly IJwtService _jwtService;
+    private readonly IAuthService _authService;
 
-    public AuthController(
-        BridgeDbContext db,
-        IPasswordHasher passwordHasher,
-        IJwtService jwtService)
+    public AuthController(IAuthService authService)
     {
-        _db = db;
-        _passwordHasher = passwordHasher;
-        _jwtService = jwtService;
+        _authService = authService;
     }
 
     [HttpPost("login")]
@@ -32,12 +23,9 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _db.Users
-            .Include(u => u.Sales)
-            .Include(u => u.Engineer)
-            .FirstOrDefaultAsync(u => u.Email == request.Email);
+        var response = await _authService.LoginAsync(request);
 
-        if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
+        if (response is null)
         {
             // メール存在/非存在を区別しない(列挙攻撃対策)
             return Unauthorized(new
@@ -46,20 +34,7 @@ public class AuthController : ControllerBase
             });
         }
 
-        var token = _jwtService.GenerateToken(user, user.Sales?.Id, user.Engineer?.Id);
-
-        return Ok(new LoginResponse
-        {
-            Token = token,
-            User = new UserSummary
-            {
-                Id = user.Id,
-                Email = user.Email,
-                Role = user.Role.ToString(),
-                SalesId = user.Sales?.Id,
-                EngineerId = user.Engineer?.Id,
-            }
-        });
+        return Ok(response);
     }
 
     [HttpPost("logout")]
@@ -81,22 +56,10 @@ public class AuthController : ControllerBase
         if (!int.TryParse(userIdString, out var userId))
             return Unauthorized();
 
-        var user = await _db.Users
-            .Include(u => u.Sales)
-            .Include(u => u.Engineer)
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user is null)
+        var response = await _authService.GetMeAsync(userId);
+        if (response is null)
             return Unauthorized();
 
-        return Ok(new MeResponse
-        {
-            Id = user.Id,
-            Email = user.Email,
-            Role = user.Role.ToString(),
-            SalesId = user.Sales?.Id,
-            EngineerId = user.Engineer?.Id,
-            Name = user.Sales?.Name ?? user.Engineer?.Name,
-        });
+        return Ok(response);
     }
 }

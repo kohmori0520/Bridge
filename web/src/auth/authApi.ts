@@ -16,7 +16,7 @@ type LoginResponse = {
 }
 
 function toRole(role: string): Role {
-  if (role === 'Sales' || role === 'Engineer') return role
+  if (role === 'Admin' || role === 'Sales' || role === 'Engineer') return role
   throw new Error(`Unsupported role: ${role}`)
 }
 

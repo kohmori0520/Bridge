@@ -8,10 +8,11 @@ export function useEngineers(page: number, pageSize: number) {
   })
 }
 
-export function useEngineer(engineerId: number) {
+export function useEngineer(engineerId: number, options: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: ['engineers', engineerId],
     queryFn: () => engineerApi.get(engineerId),
+    enabled: options.enabled ?? true,
   })
 }
 

@@ -27,6 +27,7 @@ public class ExpiringContractService : IExpiringContractService
             .Include(a => a.Project)
             .Include(a => a.Contracts)
             .AsSplitQuery()
+            .AsNoTracking()
             .Where(a => a.Status == AssignmentStatus.Active);
 
         if (filterBySalesId.HasValue)

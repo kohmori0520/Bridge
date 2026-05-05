@@ -1,5 +1,5 @@
 import { apiRequest } from '../../../shared/api/http'
-import type { Engineer, MatchCandidate } from '../../../shared/types/domain'
+import type { Engineer, MatchCandidate, PreferenceMatchType } from '../../../shared/types/domain'
 
 type ApiProjectMatchesResponse = {
   matches: {
@@ -21,6 +21,11 @@ type ApiProjectMatchesResponse = {
       actualYears: number
       status: 'matched' | 'insufficient' | 'unmet'
     }[]
+    preferenceMatches: {
+      skillId?: number
+      skillName: string
+      matchType: PreferenceMatchType
+    }[]
   }[]
 }
 
@@ -35,6 +40,9 @@ function toEngineer(engineer: ApiProjectMatchesResponse['matches'][number]['engi
     unitPrice: '-',
     skills: [],
     categories: [],
+    desiredTechnologies: [],
+    desiredAreas: [],
+    desiredRoles: [],
     avoid: [],
   }
 }
@@ -57,6 +65,11 @@ export const matchingApi = {
         requiredYears: evaluation.requiredYears,
         actualYears: evaluation.actualYears === 0 ? null : evaluation.actualYears,
         status: evaluation.status,
+      })),
+      preferenceMatches: match.preferenceMatches.map((preference) => ({
+        skillId: preference.skillId,
+        skillName: preference.skillName,
+        matchType: preference.matchType,
       })),
     }))
   },

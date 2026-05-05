@@ -16,6 +16,7 @@ public static class MatchingScorer
     private const double RequiredYearsAdequacyBonus = 0.5;
     private const int YearsShortagePenaltyWeight = 1;
     private const int CategoryPreferenceBonus = 2;
+    private const int PreferredSkillPreferenceBonus = 2;
 
     /// <summary>
     /// 案件と技術者の組み合わせに対して、スコアと内訳を計算する。
@@ -30,11 +31,14 @@ public static class MatchingScorer
         // ---- スコア内訳の計算 ----
         var skillMatchScore = CalculateSkillMatchScore(evaluations);
         var yearsAdequacyScore = CalculateYearsAdequacyScore(evaluations);
-        var categoryMatchCount = CountCategoryPreferenceMatches(project, engineer);
+        var preferenceMatches = BuildPreferenceMatches(project, engineer);
+        var preferredSkillMatchCount = preferenceMatches.Count(m => m.MatchType == "preferred_skill");
+        var categoryMatchCount = preferenceMatches.Count(m => m.MatchType == "preferred_category");
+        var preferredSkillMatchScore = preferredSkillMatchCount * PreferredSkillPreferenceBonus;
         var categoryMatchScore = categoryMatchCount * CategoryPreferenceBonus;
 
         // ---- 生スコアの合算 ----
-        var rawScore = skillMatchScore + yearsAdequacyScore + categoryMatchScore;
+        var rawScore = skillMatchScore + yearsAdequacyScore + preferredSkillMatchScore + categoryMatchScore;
         if (rawScore < 0) rawScore = 0;
 
         // ---- 最大可能スコアで正規化 ----
@@ -48,7 +52,7 @@ public static class MatchingScorer
         {
             SkillMatch = NormalizeBreakdownPart(skillMatchScore, maxPossible),
             YearsAdequacy = NormalizeBreakdownPart(yearsAdequacyScore, maxPossible),
-            CategoryMatch = NormalizeBreakdownPart(categoryMatchScore, maxPossible),
+            CategoryMatch = NormalizeBreakdownPart(preferredSkillMatchScore + categoryMatchScore, maxPossible),
         };
 
         return new MatchScoreResult(
@@ -56,6 +60,8 @@ public static class MatchingScorer
             MaxPossibleScore: 100,
             Breakdown: breakdown,
             SkillEvaluations: evaluations,
+            PreferenceMatches: preferenceMatches,
+            PreferredSkillMatched: preferredSkillMatchCount > 0,
             CategoryPreferenceMatched: categoryMatchCount > 0);
     }
 
@@ -127,21 +133,47 @@ public static class MatchingScorer
         return score;
     }
 
-    // ---- 内部:希望カテゴリ一致 ----
-    private static int CountCategoryPreferenceMatches(Project project, Engineer engineer)
+    // ---- 内部:具体希望項目・希望カテゴリ一致 ----
+    private static List<PreferenceMatch> BuildPreferenceMatches(Project project, Engineer engineer)
     {
-        // 案件の必須・歓迎スキルが属するカテゴリの集合
-        var projectCategories = project.RequiredSkills
-            .Select(rs => rs.Skill.Category)
-            .Distinct()
+        var matches = new List<PreferenceMatch>();
+        var preferredSkillIds = engineer.PreferredSkills
+            .Select(ps => ps.SkillId)
             .ToHashSet();
-
-        // 技術者の希望カテゴリ
         var preferredCategories = engineer.PreferredCategories
             .Select(pc => pc.Category)
             .ToHashSet();
 
-        return projectCategories.Intersect(preferredCategories).Count();
+        foreach (var requiredSkill in project.RequiredSkills
+                     .GroupBy(rs => rs.SkillId)
+                     .Select(g => g.First())
+                     .OrderBy(rs => rs.SkillId))
+        {
+            if (preferredSkillIds.Contains(requiredSkill.SkillId))
+            {
+                matches.Add(new PreferenceMatch
+                {
+                    SkillId = requiredSkill.SkillId,
+                    SkillName = requiredSkill.Skill.Name,
+                    Category = requiredSkill.Skill.Category.ToString(),
+                    MatchType = "preferred_skill",
+                });
+                continue;
+            }
+
+            if (preferredCategories.Contains(requiredSkill.Skill.Category))
+            {
+                matches.Add(new PreferenceMatch
+                {
+                    SkillId = requiredSkill.SkillId,
+                    SkillName = requiredSkill.Skill.Name,
+                    Category = requiredSkill.Skill.Category.ToString(),
+                    MatchType = "preferred_category",
+                });
+            }
+        }
+
+        return matches;
     }
 
     // ---- 内部:最大可能スコアの計算 ----
@@ -158,7 +190,8 @@ public static class MatchingScorer
         var max = requiredCount * RequiredSkillMatchWeight
                 + preferredCount * PreferredSkillMatchWeight
                 + requiredCount * RequiredYearsAdequacyBonus
-                + categoryCount * CategoryPreferenceBonus;
+                + categoryCount * CategoryPreferenceBonus
+                + project.RequiredSkills.Select(rs => rs.SkillId).Distinct().Count() * PreferredSkillPreferenceBonus;
 
         return Math.Max(max, 1.0);  // ゼロ除算回避
     }
@@ -177,4 +210,6 @@ public record MatchScoreResult(
     int MaxPossibleScore,
     ScoreBreakdown Breakdown,
     List<SkillEvaluation> SkillEvaluations,
+    List<PreferenceMatch> PreferenceMatches,
+    bool PreferredSkillMatched,
     bool CategoryPreferenceMatched);

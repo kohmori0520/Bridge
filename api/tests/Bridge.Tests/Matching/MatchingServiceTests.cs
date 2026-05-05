@@ -53,6 +53,9 @@ public class MatchingServiceTests
         result.Matches.Should().NotContain(m => m.Project.Id == fixture.ClosedProjectId);
         result.Matches[0].SkillEvaluations.Should().Contain(e =>
             e.SkillName == "React" && e.Status == "matched");
+        result.Matches[0].PreferredSkillMatched.Should().BeTrue();
+        result.Matches[0].PreferenceMatches.Should().Contain(m =>
+            m.SkillName == "React" && m.MatchType == "preferred_skill");
 
         var secondPage = await service.GetMatchesForEngineerAsync(fixture.EngineerId, page: 2, limit: 1);
         secondPage!.Pagination.Total.Should().Be(2);
@@ -107,6 +110,10 @@ public class MatchingServiceTests
             {
                 new EngineerPreferredCategory { Category = SkillCategory.Framework },
             },
+            PreferredSkills =
+            {
+                new EngineerPreferredSkill { Skill = react },
+            },
         };
         var weakEngineer = new Engineer
         {
@@ -154,6 +161,10 @@ public class MatchingServiceTests
             PreferredCategories =
             {
                 new EngineerPreferredCategory { Category = SkillCategory.Framework },
+            },
+            PreferredSkills =
+            {
+                new EngineerPreferredSkill { Skill = react },
             },
         };
         var strongProject = new Project

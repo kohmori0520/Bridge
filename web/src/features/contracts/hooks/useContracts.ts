@@ -7,3 +7,10 @@ export function useContracts() {
     queryFn: contractApi.listMine,
   })
 }
+
+export function useExpiringContracts(days = 30) {
+  return useQuery({
+    queryKey: ['contracts', 'expiring', days],
+    queryFn: () => contractApi.listExpiring(days),
+  })
+}

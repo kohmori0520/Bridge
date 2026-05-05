@@ -103,6 +103,7 @@ builder.Services.AddSingleton(jwtOptions);
 // Service registrations
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ISalesService, SalesService>();
 builder.Services.AddScoped<IEngineerService, EngineerService>();

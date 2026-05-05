@@ -1,5 +1,5 @@
 .page-header {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .header-row {
@@ -9,6 +9,15 @@
   justify-content: space-between;
 }
 
+.header-row .MuiTypography-h4 {
+  letter-spacing: 0;
+}
+
+.header-row .MuiTypography-colorTextSecondary {
+  margin-top: 4px;
+  max-width: 760px;
+}
+
 .back-button {
   align-self: flex-start;
 }
@@ -16,10 +25,11 @@
 .section-card {
   border: 1px solid #dce5f0;
   border-radius: 8px;
+  overflow: hidden;
 }
 
 .section-card .MuiCardContent-root {
-  padding: 18px;
+  padding: 18px 18px 20px;
 }
 
 .section-header {
@@ -69,6 +79,44 @@
   min-height: 58px;
 }
 
+.compact-row {
+  border-radius: 8px;
+  padding: 6px 4px;
+}
+
+.compact-row:hover {
+  background: #f8fbff;
+}
+
+.summary-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.summary-stat {
+  border-color: #dce5f0;
+  border-radius: 8px;
+  min-height: 74px;
+  padding: 12px 14px;
+}
+
+.summary-stat .MuiTypography-caption {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.summary-stat-success {
+  background: #f2fbf6;
+  border-color: #bfe8ce;
+}
+
+.summary-stat-warning {
+  background: #fff8ed;
+  border-color: #f3d4aa;
+}
+
 .toolbar-panel {
   align-items: center;
   background: #ffffff;
@@ -76,10 +124,16 @@
   display: flex;
   gap: 12px;
   padding: 12px;
+  position: relative;
 }
 
 .toolbar-panel .MuiTextField-root {
   min-width: 260px;
+}
+
+.toolbar-result {
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .MuiDataGrid-root {
@@ -88,11 +142,15 @@
 }
 
 .MuiDataGrid-columnHeaders {
-  background: #f1f5f9;
+  background: #f3f6fa;
 }
 
 .MuiDataGrid-columnHeaderTitle {
   font-weight: 700;
+}
+
+.MuiDataGrid-cell {
+  border-color: #edf2f7;
 }
 
 .MuiDataGrid-row:hover {
@@ -106,11 +164,29 @@
     flex-direction: column;
   }
 
+  .header-row {
+    gap: 12px;
+  }
+
   .detail-grid {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .summary-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .toolbar-panel .MuiTextField-root {
     min-width: 0;
+  }
+
+  .toolbar-result {
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .summary-stats {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

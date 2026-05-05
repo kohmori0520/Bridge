@@ -6,6 +6,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { SummaryStats } from '../../../shared/components/SummaryStats'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
 import { useEngineers } from '../hooks/useEngineers'
 import type { Engineer } from '../../../shared/types/domain'
@@ -46,7 +47,7 @@ export function EngineersPage() {
     return (data?.items ?? []).filter((engineer) => {
       const matchesKeyword =
         normalizedKeyword.length === 0 ||
-        [engineer.name, engineer.project, engineer.sales, ...engineer.skills, ...engineer.categories, ...engineer.avoid]
+        [engineer.name, engineer.project, engineer.sales, ...engineer.skills.map((skill) => skill.name), ...engineer.categories, ...engineer.avoid]
           .join(' ')
           .toLowerCase()
           .includes(normalizedKeyword)
@@ -54,6 +55,9 @@ export function EngineersPage() {
       return matchesKeyword && matchesStatus
     })
   }, [data?.items, keyword, status])
+  const pageItems = data?.items ?? []
+  const availableCount = pageItems.filter((engineer) => engineer.status === '空き').length
+  const activeCount = pageItems.filter((engineer) => engineer.status === '稼働中').length
 
   return (
     <Stack spacing={2}>
@@ -66,6 +70,13 @@ export function EngineersPage() {
           </Button>
         }
       />
+      <SummaryStats
+        items={[
+          { label: '表示中', value: `${rows.length}名` },
+          { label: '空き', value: `${availableCount}名`, tone: 'success' },
+          { label: '稼働中', value: `${activeCount}名` },
+        ]}
+      />
       <ToolbarPanel
         keyword={keyword}
         status={status}
@@ -77,6 +88,7 @@ export function EngineersPage() {
         keywordPlaceholder="氏名・案件名・スキル"
         onKeywordChange={setKeyword}
         onStatusChange={setStatus}
+        resultLabel={`${rows.length} / ${data?.total ?? 0} 名`}
       />
       {error ? <ApiErrorAlert error={error} fallbackMessage="技術者一覧の取得に失敗しました。" /> : null}
       <Section title="技術者">

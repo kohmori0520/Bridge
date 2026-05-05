@@ -8,6 +8,14 @@ type CompactProjectListProps = {
 }
 
 export function CompactProjectList({ projects }: CompactProjectListProps) {
+  if (projects.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        表示できる案件はまだありません。
+      </Typography>
+    )
+  }
+
   return (
     <Stack divider={<Divider />} spacing={1}>
       {projects.map((project) => (

@@ -12,8 +12,15 @@ import { useEngineer } from '../hooks/useEngineers'
 
 export function EngineerDetailPage() {
   const { id } = useParams()
-  const engineerId = Number(id) || 1
-  const { data: engineer, isLoading } = useEngineer(engineerId)
+  const engineerId = Number(id)
+  const isValidId = Number.isFinite(engineerId) && engineerId > 0
+  const { data: engineer, isLoading } = useEngineer(isValidId ? engineerId : 0, {
+    enabled: isValidId,
+  })
+
+  if (!isValidId) {
+    return <EmptyState message="技術者が見つかりませんでした。" />
+  }
 
   if (isLoading) {
     return <LoadingState message="技術者情報を読み込み中です。" />
@@ -42,8 +49,10 @@ export function EngineerDetailPage() {
         </Section>
         <Section title="キャリア志向">
           <Stack spacing={1}>
-            <ChipList label="保有スキル" values={engineer.skills} />
-            <ChipList label="希望カテゴリ" values={engineer.categories} color="success" />
+            <ChipList label="保有スキル" values={engineer.skills.map((skill) => `${skill.name} ${skill.years}年`)} />
+            <ChipList label="やりたい技術" values={engineer.desiredTechnologies} color="success" />
+            <ChipList label="関わりたい領域" values={engineer.desiredAreas} color="success" />
+            <ChipList label="希望役割" values={engineer.desiredRoles} color="success" />
             <ChipList label="避けたい業務" values={engineer.avoid} color="warning" />
           </Stack>
         </Section>

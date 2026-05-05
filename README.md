@@ -84,7 +84,10 @@ Development 環境では `DemoUserSeeder` により以下のユーザーが作�
 | Role | Email | Password |
 |---|---|---|
 | Sales | `sato@bridge.local` | `Sales1234!` |
+| Sales | `yamada.sales@bridge.local` | `Sales1234!` |
 | Engineer | `tanaka@bridge.local` | `Engineer1234!` |
+| Engineer | `suzuki.hanako@bridge.local` | `Engineer1234!` |
+| Engineer | `aoki.mika@bridge.local` | `Engineer1234!` |
 | Admin | `admin@bridge.local` | `Admin1234!` |
 
 Production では Seeder は実行されません。

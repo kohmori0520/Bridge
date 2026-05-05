@@ -1,14 +1,14 @@
 .app-shell {
   min-height: 100svh;
   background:
-    linear-gradient(180deg, rgba(18, 52, 91, 0.045), rgba(18, 52, 91, 0) 220px),
-    #f4f7fb;
+    linear-gradient(180deg, rgba(18, 52, 91, 0.06), rgba(18, 52, 91, 0) 240px),
+    #f5f7fb;
 }
 
 .topbar {
   min-height: 58px;
   gap: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .brand {
@@ -34,6 +34,12 @@
   color: rgba(255, 255, 255, 0.78);
   min-height: 42px;
   padding-inline: 18px;
+  transition: background-color 140ms ease, color 140ms ease;
+}
+
+.nav-tabs .MuiTab-root:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .nav-tabs .Mui-selected {
@@ -41,8 +47,8 @@
 }
 
 .page-container {
-  padding-bottom: 40px;
-  padding-top: 24px;
+  padding-bottom: 48px;
+  padding-top: 28px;
 }
 
 .two-column {
@@ -75,5 +81,10 @@
   .page-container {
     padding-inline: 14px;
     padding-top: 16px;
+  }
+
+  .nav-tabs .MuiTab-root {
+    min-width: 112px;
+    padding-inline: 12px;
   }
 }

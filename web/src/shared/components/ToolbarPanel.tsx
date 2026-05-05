@@ -1,5 +1,5 @@
 import { RestartAlt, Search } from '@mui/icons-material'
-import { Button, FormControl, InputAdornment, InputLabel, MenuItem, Paper, Select, TextField } from '@mui/material'
+import { Button, FormControl, InputAdornment, InputLabel, MenuItem, Paper, Select, TextField, Typography } from '@mui/material'
 
 type ToolbarPanelProps = {
   keyword: string
@@ -9,6 +9,7 @@ type ToolbarPanelProps = {
   onStatusChange: (value: string) => void
   keywordPlaceholder?: string
   statusLabel?: string
+  resultLabel?: string
 }
 
 export function ToolbarPanel({
@@ -19,6 +20,7 @@ export function ToolbarPanel({
   onStatusChange,
   keywordPlaceholder = 'キーワード',
   statusLabel = 'ステータス',
+  resultLabel,
 }: ToolbarPanelProps) {
   const hasFilter = keyword.trim().length > 0 || status !== 'all'
 
@@ -61,6 +63,11 @@ export function ToolbarPanel({
       >
         クリア
       </Button>
+      {resultLabel && (
+        <Typography className="toolbar-result" variant="body2" color="text.secondary">
+          {resultLabel}
+        </Typography>
+      )}
     </Paper>
   )
 }

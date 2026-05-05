@@ -8,6 +8,14 @@ type CompactEngineerListProps = {
 }
 
 export function CompactEngineerList({ engineers }: CompactEngineerListProps) {
+  if (engineers.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary">
+        表示できる技術者はまだいません。
+      </Typography>
+    )
+  }
+
   return (
     <Stack divider={<Divider />} spacing={1}>
       {engineers.map((engineer) => (

@@ -28,6 +28,7 @@ public class EngineerService : IEngineerService
             .Include(e => e.Assignments).ThenInclude(a => a.Project)
             .Include(e => e.Assignments).ThenInclude(a => a.Contracts)
             .AsSplitQuery()
+            .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id);
 
         if (engineer is null) return null;
@@ -38,10 +39,7 @@ public class EngineerService : IEngineerService
     public async Task<EngineerListResponse> ListAsync(EngineerListQuery query)
     {
         var queryable = _db.Engineers
-            .Include(e => e.PrimarySales)
-            .Include(e => e.Skills).ThenInclude(es => es.Skill)
-            .Include(e => e.Assignments)
-            .AsSplitQuery()
+            .AsNoTracking()
             .AsQueryable();
 
         if (query.PrimarySalesId.HasValue)
@@ -56,32 +54,35 @@ public class EngineerService : IEngineerService
             queryable = queryable.Where(e => e.Assignments.Any(a => a.Status == AssignmentStatus.Active));
 
         var total = await queryable.CountAsync();
-        var engineers = await queryable
+        var items = await queryable
             .OrderBy(e => e.Id)
             .Skip((query.Page - 1) * query.Limit)
             .Take(query.Limit)
+            .Select(e => new EngineerSummary
+            {
+                Id = e.Id,
+                Name = e.Name,
+                PrimarySales = e.PrimarySales == null ? null : new PrimarySalesDto
+                {
+                    Id = e.PrimarySales.Id,
+                    Name = e.PrimarySales.Name,
+                    Department = e.PrimarySales.Department,
+                    Email = string.Empty,  // 一覧では不要
+                },
+                IsAvailable = !e.Assignments.Any(a => a.Status == AssignmentStatus.Active),
+                Skills = e.Skills
+                    .OrderBy(s => s.Skill.Category)
+                    .ThenBy(s => s.Skill.Id)
+                    .Select(s => new EngineerSkillDto
+                    {
+                        SkillId = s.SkillId,
+                        SkillName = s.Skill.Name,
+                        Category = s.Skill.Category.ToString(),
+                        Years = s.Years,
+                    })
+                    .ToList(),
+            })
             .ToListAsync();
-
-        var items = engineers.Select(e => new EngineerSummary
-        {
-            Id = e.Id,
-            Name = e.Name,
-            PrimarySales = e.PrimarySales is null ? null : new PrimarySalesDto
-            {
-                Id = e.PrimarySales.Id,
-                Name = e.PrimarySales.Name,
-                Department = e.PrimarySales.Department,
-                Email = string.Empty,  // 一覧では不要
-            },
-            IsAvailable = !e.Assignments.Any(a => a.Status == AssignmentStatus.Active),
-            Skills = e.Skills.Select(s => new EngineerSkillDto
-            {
-                SkillId = s.SkillId,
-                SkillName = s.Skill.Name,
-                Category = s.Skill.Category.ToString(),
-                Years = s.Years,
-            }).ToList(),
-        }).ToList();
 
         return new EngineerListResponse
         {

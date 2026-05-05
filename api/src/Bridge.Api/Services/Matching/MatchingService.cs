@@ -26,6 +26,7 @@ public class MatchingService : IMatchingService
         var project = await _db.Projects
             .Include(p => p.RequiredSkills).ThenInclude(rs => rs.Skill)
             .AsSplitQuery()
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == projectId);
 
         if (project is null) return null;
@@ -34,9 +35,11 @@ public class MatchingService : IMatchingService
         var availableEngineers = await _db.Engineers
             .Include(e => e.PrimarySales)
             .Include(e => e.Skills).ThenInclude(es => es.Skill)
+            .Include(e => e.PreferredSkills).ThenInclude(ps => ps.Skill)
             .Include(e => e.PreferredCategories)
             .Include(e => e.Assignments)
             .AsSplitQuery()
+            .AsNoTracking()
             .Where(e => !e.Assignments.Any(a => a.Status == AssignmentStatus.Active))
             .ToListAsync();
 
@@ -68,6 +71,8 @@ public class MatchingService : IMatchingService
             Score = x.Result.Score,
             ScoreBreakdown = x.Result.Breakdown,
             SkillEvaluations = x.Result.SkillEvaluations,
+            PreferenceMatches = x.Result.PreferenceMatches,
+            PreferredSkillMatched = x.Result.PreferredSkillMatched,
             CategoryPreferenceMatched = x.Result.CategoryPreferenceMatched,
         }).ToList();
 
@@ -89,8 +94,10 @@ public class MatchingService : IMatchingService
 
         var engineer = await _db.Engineers
             .Include(e => e.Skills).ThenInclude(es => es.Skill)
+            .Include(e => e.PreferredSkills).ThenInclude(ps => ps.Skill)
             .Include(e => e.PreferredCategories)
             .AsSplitQuery()
+            .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == engineerId);
 
         if (engineer is null) return null;
@@ -100,6 +107,7 @@ public class MatchingService : IMatchingService
             .Include(p => p.OwnerSales)
             .Include(p => p.RequiredSkills).ThenInclude(rs => rs.Skill)
             .AsSplitQuery()
+            .AsNoTracking()
             .Where(p => p.Status == ProjectStatus.Open)
             .ToListAsync();
 
@@ -135,6 +143,8 @@ public class MatchingService : IMatchingService
             MaxPossibleScore = x.Result.MaxPossibleScore,
             ScoreBreakdown = x.Result.Breakdown,
             SkillEvaluations = x.Result.SkillEvaluations,
+            PreferenceMatches = x.Result.PreferenceMatches,
+            PreferredSkillMatched = x.Result.PreferredSkillMatched,
             CategoryPreferenceMatched = x.Result.CategoryPreferenceMatched,
         }).ToList();
 

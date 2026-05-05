@@ -21,6 +21,7 @@ public class EngineerPreferenceService : IEngineerPreferenceService
             .Include(e => e.PreferredSkills).ThenInclude(p => p.Skill)
             .Include(e => e.PreferredCategories)
             .AsSplitQuery()
+            .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == engineerId);
 
         if (engineer is null) return null;
@@ -65,6 +66,7 @@ public class EngineerPreferenceService : IEngineerPreferenceService
         // 存在するスキルIDのみ受け付ける
         var requestedSkillIds = request.PreferredSkillIds.Distinct().ToList();
         var validSkillIds = await _db.Skills
+            .AsNoTracking()
             .Where(s => requestedSkillIds.Contains(s.Id))
             .Select(s => s.Id)
             .ToListAsync();

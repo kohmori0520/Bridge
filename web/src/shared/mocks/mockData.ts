@@ -1,6 +1,7 @@
 import type { Contract, Engineer, MatchCandidate, Project, Role, User } from '../types/domain'
 
 export const users: Record<Role, User> = {
+  Admin: { role: 'Admin', name: '管理者', email: 'admin@bridge.local' },
   Sales: { role: 'Sales', name: '佐藤 営業', email: 'sato@bridge.local' },
   Engineer: { role: 'Engineer', name: '田中 太郎', email: 'tanaka@bridge.local' },
 }
@@ -92,8 +93,16 @@ export const engineers: Engineer[] = [
     availableFrom: '2025-06-01',
     sales: '佐藤 営業',
     unitPrice: '85万',
-    skills: ['React 5年', 'TypeScript 4年', 'C# 3年', 'AWS 2年'],
+    skills: [
+      { name: 'React', years: 5 },
+      { name: 'TypeScript', years: 4 },
+      { name: 'C#', years: 3 },
+      { name: 'AWS', years: 2 },
+    ],
     categories: ['Web開発', 'フロントエンド'],
+    desiredTechnologies: ['React', 'TypeScript', 'AWS'],
+    desiredAreas: ['金融', 'Web開発'],
+    desiredRoles: ['テックリード'],
     avoid: ['パッケージ導入', '運用保守'],
   },
   {
@@ -104,8 +113,15 @@ export const engineers: Engineer[] = [
     availableFrom: '2025-05-01',
     sales: '佐藤 営業',
     unitPrice: '82万',
-    skills: ['TypeScript 5年', 'Next.js 3年', 'Node.js 4年'],
+    skills: [
+      { name: 'TypeScript', years: 5 },
+      { name: 'Next.js', years: 3 },
+      { name: 'Node.js', years: 4 },
+    ],
     categories: ['Web開発', 'バックエンド'],
+    desiredTechnologies: ['TypeScript', 'Next.js'],
+    desiredAreas: ['Web開発', 'SaaS'],
+    desiredRoles: ['基本設計'],
     avoid: ['常駐運用'],
   },
   {
@@ -116,8 +132,15 @@ export const engineers: Engineer[] = [
     availableFrom: '2025-05-01',
     sales: '佐藤 営業',
     unitPrice: '78万',
-    skills: ['C# 6年', 'React 2年', 'Azure 3年'],
+    skills: [
+      { name: 'C#', years: 6 },
+      { name: 'React', years: 2 },
+      { name: 'Azure', years: 3 },
+    ],
     categories: ['業務システム', 'クラウド'],
+    desiredTechnologies: ['C#', 'Azure'],
+    desiredAreas: ['業務系システム'],
+    desiredRoles: ['要件定義'],
     avoid: ['短期案件'],
   },
 ]
@@ -135,6 +158,10 @@ export const matchCandidates: MatchCandidate[] = [
       { skill: '金融ドメイン経験', type: '必須', requiredYears: 2, actualYears: null, status: 'unmet' },
       { skill: 'AWS', type: '歓迎', requiredYears: 1, actualYears: 2, status: 'matched' },
     ],
+    preferenceMatches: [
+      { skillName: 'React', matchType: 'preferred_skill' },
+      { skillName: '金融', matchType: 'preferred_category' },
+    ],
   },
   {
     rank: 2,
@@ -146,6 +173,9 @@ export const matchCandidates: MatchCandidate[] = [
       { skill: 'TypeScript', type: '必須', requiredYears: 2, actualYears: 5, status: 'matched' },
       { skill: 'C#', type: '必須', requiredYears: 5, actualYears: null, status: 'unmet' },
       { skill: 'AWS', type: '歓迎', requiredYears: 1, actualYears: null, status: 'unmet' },
+    ],
+    preferenceMatches: [
+      { skillName: 'TypeScript', matchType: 'preferred_skill' },
     ],
   },
 ]

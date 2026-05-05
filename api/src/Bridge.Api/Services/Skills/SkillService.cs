@@ -16,6 +16,7 @@ public class SkillService : ISkillService
     public async Task<List<SkillResponse>> ListAsync()
     {
         return await _db.Skills
+            .AsNoTracking()
             .OrderBy(s => s.Category)
             .ThenBy(s => s.Id)
             .Select(s => new SkillResponse

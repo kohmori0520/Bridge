@@ -16,7 +16,7 @@ public class SalesService : ISalesService
     public async Task<List<SalesResponse>> ListAsync()
     {
         return await _db.Sales
-            .Include(s => s.User)
+            .AsNoTracking()
             .OrderBy(s => s.Id)
             .Select(s => new SalesResponse
             {
@@ -31,7 +31,7 @@ public class SalesService : ISalesService
     public async Task<SalesResponse?> GetByIdAsync(int id)
     {
         return await _db.Sales
-            .Include(s => s.User)
+            .AsNoTracking()
             .Where(s => s.Id == id)
             .Select(s => new SalesResponse
             {

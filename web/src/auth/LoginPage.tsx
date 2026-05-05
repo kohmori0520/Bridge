@@ -19,7 +19,7 @@ export function LoginPage() {
     const nextRole = event.target.value as Role
     setRole(nextRole)
     setEmail(demoUsers[nextRole].email)
-    setPassword(nextRole === 'Sales' ? 'Sales1234!' : 'Engineer1234!')
+    setPassword(nextRole === 'Admin' ? 'Admin1234!' : nextRole === 'Sales' ? 'Sales1234!' : 'Engineer1234!')
   }
 
   const handleSubmit = async () => {
@@ -46,6 +46,7 @@ export function LoginPage() {
           <FormControl>
             <InputLabel id="role-label">ログイン種別</InputLabel>
             <Select labelId="role-label" value={role} label="ログイン種別" onChange={handleRoleChange}>
+              <MenuItem value="Admin">管理者</MenuItem>
               <MenuItem value="Engineer">エンジニア</MenuItem>
               <MenuItem value="Sales">営業</MenuItem>
             </Select>
