@@ -12,7 +12,7 @@ import type { Project, Role } from '../../../shared/types/domain'
 
 export function ProjectsPage() {
   const { user } = useAuth()
-  const role: Role = user.role
+  const role: Role = user?.role ?? 'Engineer'
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const { data, isLoading } = useProjects(paginationModel.page, paginationModel.pageSize)
   const columns: GridColDef<Project>[] = [

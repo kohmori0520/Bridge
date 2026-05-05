@@ -6,6 +6,11 @@ export type User = {
   email: string
 }
 
+export type LoginCredentials = {
+  email: string
+  password: string
+}
+
 export type RequiredSkill = {
   name: string
   years: number

@@ -1,12 +1,17 @@
 import { Dashboard, Groups, History, Logout, Person, Search, Work } from '@mui/icons-material'
 import { AppBar, Box, Button, Chip, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
-import { Link as RouterLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { Link as RouterLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+
+  if (!user) {
+    return <Navigate to="/login" replace state={{ from: location }} />
+  }
+
   const tabs =
     user.role === 'Sales'
       ? [
@@ -38,8 +43,8 @@ export function AppLayout() {
             <Button
               color="inherit"
               startIcon={<Logout />}
-              onClick={() => {
-                logout()
+              onClick={async () => {
+                await logout()
                 navigate('/login')
               }}
             >

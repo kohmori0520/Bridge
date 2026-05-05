@@ -33,7 +33,7 @@ export function ProjectDetailPage() {
         subtitle={`${project.client} ・ ${project.status} ・ 担当:${project.owner}`}
         backTo="/projects"
         actions={
-          user.role === 'Sales' ? (
+          user?.role === 'Sales' ? (
             <>
               <Button component={RouterLink} to={`/projects/${project.id}/edit`} startIcon={<Edit />}>編集</Button>
               <Button color="inherit" startIcon={<Close />}>閉じる</Button>
@@ -50,7 +50,7 @@ export function ProjectDetailPage() {
           <SkillBlock title="歓迎スキル" skills={project.welcomeSkills} />
         </div>
       </Section>
-      {user.role === 'Sales' ? (
+      {user?.role === 'Sales' ? (
         <Section title="マッチング候補(スコア順)">
           <Stack spacing={2}>
             {matchCandidates.map((candidate) => (

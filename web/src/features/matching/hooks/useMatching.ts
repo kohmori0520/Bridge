@@ -4,6 +4,6 @@ import { matchingApi } from '../api/matchingApi'
 export function useProjectMatches(projectId: number) {
   return useQuery({
     queryKey: ['projects', projectId, 'matches'],
-    queryFn: matchingApi.listProjectMatches,
+    queryFn: () => matchingApi.listProjectMatches(projectId),
   })
 }

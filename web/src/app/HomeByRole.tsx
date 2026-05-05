@@ -4,5 +4,5 @@ import { SalesDashboard } from '../features/sales/pages/SalesDashboard'
 
 export function HomeByRole() {
   const { user } = useAuth()
-  return user.role === 'Sales' ? <SalesDashboard /> : <EngineerDashboard />
+  return user?.role === 'Sales' ? <SalesDashboard /> : <EngineerDashboard />
 }

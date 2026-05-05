@@ -1,6 +1,6 @@
 import { Alert, Button, Stack } from '@mui/material'
 import type { ReactNode } from 'react'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, Navigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import { PageHeader } from '../shared/components/PageHeader'
 import type { Role } from '../shared/types/domain'
@@ -12,6 +12,10 @@ type RequireRoleProps = {
 
 export function RequireRole({ allowed, children }: RequireRoleProps) {
   const { user } = useAuth()
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
 
   if (allowed.includes(user.role)) {
     return children

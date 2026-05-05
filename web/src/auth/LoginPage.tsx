@@ -7,12 +7,32 @@ import { useAuth } from './useAuth'
 import type { Role } from '../shared/types/domain'
 
 export function LoginPage() {
-  const { demoUsers, loginAs } = useAuth()
+  const { demoUsers, login } = useAuth()
   const [role, setRole] = useState<Role>('Engineer')
+  const [email, setEmail] = useState(demoUsers.Engineer.email)
+  const [password, setPassword] = useState('Engineer1234!')
+  const [error, setError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
   const handleRoleChange = (event: SelectChangeEvent) => {
-    setRole(event.target.value as Role)
+    const nextRole = event.target.value as Role
+    setRole(nextRole)
+    setEmail(demoUsers[nextRole].email)
+    setPassword(nextRole === 'Sales' ? 'Sales1234!' : 'Engineer1234!')
+  }
+
+  const handleSubmit = async () => {
+    setError(null)
+    setIsSubmitting(true)
+    try {
+      await login({ email, password })
+      navigate('/')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'ログインに失敗しました')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -21,8 +41,8 @@ export function LoginPage() {
         <Typography variant="h4">Bridge</Typography>
         <Typography color="text.secondary">営業とエンジニアの契約・案件・マッチング情報をひとつに集約します。</Typography>
         <Stack spacing={2}>
-          <TextField key={role} label="メールアドレス" defaultValue={demoUsers[role].email} />
-          <TextField label="パスワード" type="password" defaultValue="password" />
+          <TextField label="メールアドレス" value={email} onChange={(event) => setEmail(event.target.value)} />
+          <TextField label="パスワード" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
           <FormControl>
             <InputLabel id="role-label">ログイン種別</InputLabel>
             <Select labelId="role-label" value={role} label="ログイン種別" onChange={handleRoleChange}>
@@ -34,15 +54,14 @@ export function LoginPage() {
             size="large"
             variant="contained"
             startIcon={<Login />}
-            onClick={() => {
-              loginAs(role)
-              navigate('/')
-            }}
+            disabled={isSubmitting}
+            onClick={handleSubmit}
           >
-            ログイン
+            {isSubmitting ? 'ログイン中...' : 'ログイン'}
           </Button>
         </Stack>
-        <Alert severity="info">バックエンド認証が接続されるまでは、デモユーザーで画面遷移を確認できます。</Alert>
+        {error && <Alert severity="error">{error}</Alert>}
+        <Alert severity="info">開発用ユーザーのメールアドレスとパスワードを初期入力しています。</Alert>
       </Paper>
     </Box>
   )

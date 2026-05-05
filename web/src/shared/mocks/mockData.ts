@@ -1,8 +1,8 @@
 import type { Contract, Engineer, MatchCandidate, Project, Role, User } from '../types/domain'
 
 export const users: Record<Role, User> = {
-  Sales: { role: 'Sales', name: '佐藤 営業', email: 'sato@example.com' },
-  Engineer: { role: 'Engineer', name: '田中 太郎', email: 'tanaka@example.com' },
+  Sales: { role: 'Sales', name: '佐藤 営業', email: 'sato@bridge.local' },
+  Engineer: { role: 'Engineer', name: '田中 太郎', email: 'tanaka@bridge.local' },
 }
 
 export const projects: Project[] = [
