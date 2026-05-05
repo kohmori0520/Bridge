@@ -1,73 +1,89 @@
-# React + TypeScript + Vite
+# Bridge Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Bridge のフロントエンドです。React + TypeScript + Vite で構成し、API は `VITE_API_BASE_URL` で指定した ASP.NET Core API に接続します。
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- React 19
+- TypeScript 6
+- Vite 8
+- MUI 9 / MUI X DataGrid
+- TanStack Query
+- React Router
 
-## React Compiler
+## Setup
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm ci
+cp .env.example .env.local
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`.env.local`:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```env
+VITE_API_BASE_URL=http://localhost:5130
 ```
+
+Production / Vercel では以下を設定します。
+
+```env
+VITE_API_BASE_URL=https://bridge-api-mk.fly.dev
+```
+
+`VITE_*` はビルド時に埋め込まれるため、Vercel 側で変更したら Redeploy が必要です。
+
+## Commands
+
+```bash
+npm run dev          # 開発サーバー
+npx tsc --noEmit     # 型チェック
+npm run lint         # ESLint
+npm run build        # 本番ビルド
+npm run preview      # build 結果の確認
+```
+
+## Authentication
+
+- `/auth/login` で JWT を取得します。
+- JWT は React state 上のメモリに保持します。
+- リロード時は再ログインが必要です。
+
+開発用ユーザー:
+
+| Role | Email | Password |
+|---|---|---|
+| Sales | `sato@bridge.local` | `Sales1234!` |
+| Engineer | `tanaka@bridge.local` | `Engineer1234!` |
+
+## API Integration
+
+共通 HTTP client は `src/shared/api/http.ts` にあります。
+
+主な接続済み API:
+
+- `POST /auth/login`
+- `POST /auth/logout`
+- `GET /projects`
+- `GET /projects/{id}`
+- `POST /projects`
+- `PATCH /projects/{id}`
+- `GET /skills`
+- `GET /engineers`
+- `GET /engineers/{id}`
+- `GET /projects/{id}/matches`
+- `GET /engineers/me/matches`
+- `GET /engineers/me/assignments`
+
+## Deployment
+
+Vercel の設定:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `web` |
+| Framework Preset | Vite |
+| Build Command | `npm run build` |
+| Output Directory | `dist` |
+
+詳細は [`../Docs/deployment.md`](../Docs/deployment.md) を参照してください。
