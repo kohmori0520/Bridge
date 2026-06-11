@@ -178,15 +178,20 @@ public class ProjectService : IProjectService
         return await GetByIdAsync(id);
     }
 
-    public async Task<bool> SoftDeleteAsync(int id)
+    public async Task<ProjectDeleteResult> SoftDeleteAsync(int id)
     {
         var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == id);
-        if (project is null) return false;
+        if (project is null) return ProjectDeleteResult.NotFound;
+
+        // アサイン(契約履歴)が紐づく案件を消すと、グローバルクエリフィルタにより
+        // Assignment.Project が解決できなくなり、契約系 API が壊れるため拒否する
+        var hasAssignments = await _db.Assignments.AnyAsync(a => a.ProjectId == id);
+        if (hasAssignments) return ProjectDeleteResult.HasAssignments;
 
         project.DeletedAt = DateTime.UtcNow;
         project.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
-        return true;
+        return ProjectDeleteResult.Deleted;
     }
 
     // ---- helpers ----

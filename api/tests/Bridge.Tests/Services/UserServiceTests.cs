@@ -92,6 +92,26 @@ public class UserServiceTests
         (await db.Users.CountAsync()).Should().Be(1);
     }
 
+    [Fact]
+    public async Task CreateAsync_ReturnsSalesNotFound_WhenPrimarySalesDoesNotExist()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-user-service-tests");
+        var service = new UserService(db, new TestPasswordHasher());
+
+        var result = await service.CreateAsync(new CreateUserRequest
+        {
+            Email = "tanaka@bridge.local",
+            Password = "Password123!",
+            Role = "Engineer",
+            Name = "田中 太郎",
+            PrimarySalesId = 999,
+        });
+
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be("SALES_NOT_FOUND");
+        (await db.Users.CountAsync()).Should().Be(0);
+    }
+
     private sealed class TestPasswordHasher : IPasswordHasher
     {
         public string Hash(string password) => $"hashed:{password}";

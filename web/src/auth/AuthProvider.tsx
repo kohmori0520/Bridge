@@ -1,6 +1,5 @@
-import { useMemo, useState, type ReactNode } from 'react'
-import { setAccessToken } from '../shared/api/http'
-import { users } from '../shared/mocks/mockData'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { setAccessToken, setUnauthorizedHandler } from '../shared/api/http'
 import type { User } from '../shared/types/domain'
 import { authApi } from './authApi'
 import { clearAuthSession, loadAuthSession, saveAuthSession } from './authStorage'
@@ -13,10 +12,19 @@ if (initialSession) {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null)
+
+  useEffect(() => {
+    // トークン失効(401)時はセッションを破棄してログイン画面へ誘導する
+    setUnauthorizedHandler(() => {
+      clearAuthSession()
+      setUser(null)
+    })
+    return () => setUnauthorizedHandler(null)
+  }, [])
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
-      demoUsers: users,
       login: async ({ email, password }) => {
         const result = await authApi.login(email, password)
         setAccessToken(result.token)

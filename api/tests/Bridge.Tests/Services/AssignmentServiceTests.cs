@@ -98,6 +98,7 @@ public class AssignmentServiceTests
         };
         db.Assignments.Add(assignment);
         await db.SaveChangesAsync();
+        var updatedAtBefore = assignment.UpdatedAt;
         var service = new AssignmentService(db);
 
         var result = await service.AddContractAsync(assignment.Id, new CreateContractRequest
@@ -111,6 +112,9 @@ public class AssignmentServiceTests
         result.Contract!.ContractType.Should().Be("renewal");
         result.Contract.UnitPrice.Should().Be(850000);
         (await db.Contracts.CountAsync(c => c.AssignmentId == assignment.Id)).Should().Be(2);
+
+        var storedAssignment = await db.Assignments.AsNoTracking().SingleAsync(a => a.Id == assignment.Id);
+        storedAssignment.UpdatedAt.Should().BeAfter(updatedAtBefore);
     }
 
     [Fact]

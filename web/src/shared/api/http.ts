@@ -7,6 +7,12 @@ export function setAccessToken(token: string | null) {
   accessToken = token
 }
 
+let onUnauthorized: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler
+}
+
 export class ApiError extends Error {
   readonly status: number
 
@@ -48,6 +54,12 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
   })
 
   if (!response.ok) {
+    // トークン付きリクエストの 401 はセッション失効(期限切れ等)とみなし、
+    // ログイン画面へ戻す(ログイン試行自体の 401 はトークンがないので対象外)
+    if (response.status === 401 && accessToken) {
+      setAccessToken(null)
+      onUnauthorized?.()
+    }
     throw new ApiError(response.status, await readErrorMessage(response))
   }
 

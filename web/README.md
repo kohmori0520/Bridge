@@ -39,9 +39,23 @@ VITE_API_BASE_URL=https://bridge-api-mk.fly.dev
 npm run dev          # 開発サーバー
 npx tsc --noEmit     # 型チェック
 npm run lint         # ESLint
+npm test             # テスト (Vitest)
+npm run test:watch   # テスト (watch モード)
+npm run test:coverage # テスト + カバレッジレポート
 npm run build        # 本番ビルド
 npm run preview      # build 結果の確認
 ```
+
+## Testing
+
+Vitest + React Testing Library + MSW で構成しています。
+
+- テストファイルは対象モジュールと同じディレクトリに `*.test.ts(x)` で配置します。
+- API は実際に fetch を発行し、[MSW](https://mswjs.io/) でモックします (`src/test/server.ts`)。
+  各テストが `server.use(...)` で必要なハンドラーを登録し、未登録のリクエストはエラーになります。
+- コンポーネントは `src/test/renderWithProviders.tsx` の `renderWithProviders` でレンダリングします
+  (QueryClient / AuthContext / MemoryRouter を提供)。
+- 共通セットアップは `src/test/setup.ts` にあります (jest-dom、MSW ライフサイクル、トークン・sessionStorage のリセット)。
 
 ## Authentication
 

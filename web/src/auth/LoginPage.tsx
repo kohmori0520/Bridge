@@ -6,11 +6,18 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import type { Role } from '../shared/types/domain'
 
+// Development 環境の DemoUserSeeder が作成するアカウント(README 参照)
+const demoAccounts: Record<Role, { email: string; password: string }> = {
+  Admin: { email: 'admin@bridge.local', password: 'Admin1234!' },
+  Sales: { email: 'sato@bridge.local', password: 'Sales1234!' },
+  Engineer: { email: 'tanaka@bridge.local', password: 'Engineer1234!' },
+}
+
 export function LoginPage() {
-  const { demoUsers, login } = useAuth()
+  const { login } = useAuth()
   const [role, setRole] = useState<Role>('Engineer')
-  const [email, setEmail] = useState(demoUsers.Engineer.email)
-  const [password, setPassword] = useState('Engineer1234!')
+  const [email, setEmail] = useState(demoAccounts.Engineer.email)
+  const [password, setPassword] = useState(demoAccounts.Engineer.password)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
@@ -18,8 +25,8 @@ export function LoginPage() {
   const handleRoleChange = (event: SelectChangeEvent) => {
     const nextRole = event.target.value as Role
     setRole(nextRole)
-    setEmail(demoUsers[nextRole].email)
-    setPassword(nextRole === 'Admin' ? 'Admin1234!' : nextRole === 'Sales' ? 'Sales1234!' : 'Engineer1234!')
+    setEmail(demoAccounts[nextRole].email)
+    setPassword(demoAccounts[nextRole].password)
   }
 
   const handleSubmit = async () => {

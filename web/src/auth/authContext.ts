@@ -1,9 +1,8 @@
 import { createContext } from 'react'
-import type { LoginCredentials, Role, User } from '../shared/types/domain'
+import type { LoginCredentials, User } from '../shared/types/domain'
 
 export type AuthContextValue = {
   user: User | null
-  demoUsers: Record<Role, User>
   login: (credentials: LoginCredentials) => Promise<void>
   logout: () => Promise<void>
 }

@@ -31,6 +31,17 @@ public class UserService : IUserService
 
         var role = Enum.Parse<UserRole>(request.Role);
 
+        // Engineer の担当営業は存在チェック(FK 違反による 500 を防ぐ)
+        if (role == UserRole.Engineer && request.PrimarySalesId.HasValue
+            && !await _db.Sales.AnyAsync(s => s.Id == request.PrimarySalesId.Value))
+        {
+            return new CreateUserResult(
+                Success: false,
+                Response: null,
+                ErrorCode: "SALES_NOT_FOUND",
+                ErrorMessage: "指定された担当営業が存在しません");
+        }
+
         // User と紐付くプロフィールを1トランザクションで作成
         await using var tx = await _db.Database.BeginTransactionAsync();
 

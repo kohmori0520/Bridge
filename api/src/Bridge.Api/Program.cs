@@ -97,7 +97,7 @@ builder.Services.AddDbContext<BridgeDbContext>(options =>
 // JWT Options
 var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
     ?? throw new InvalidOperationException("Jwt configuration is missing.");
-ValidateJwtOptions(jwtOptions);
+ValidateJwtOptions(jwtOptions, builder.Environment.IsDevelopment());
 builder.Services.AddSingleton(jwtOptions);
 
 // Service registrations
@@ -166,13 +166,18 @@ if (app.Environment.IsDevelopment())
 
 app.Run();
 
-static void ValidateJwtOptions(JwtOptions options)
+static void ValidateJwtOptions(JwtOptions options, bool isDevelopment)
 {
     if (string.IsNullOrWhiteSpace(options.Secret))
         throw new InvalidOperationException("Jwt:Secret configuration is missing.");
 
     if (options.Secret == "REPLACE_IN_PRODUCTION")
         throw new InvalidOperationException("Jwt:Secret must be replaced with a secure value.");
+
+    // appsettings.json にコミットされている開発用 secret は本番では使用不可
+    // (Jwt__Secret の設定漏れで既知の secret のまま稼働する事故を防ぐ)
+    if (!isDevelopment && options.Secret == "local-development-secret-for-bridge-api-32bytes")
+        throw new InvalidOperationException("Jwt:Secret must be overridden outside Development.");
 
     if (Encoding.UTF8.GetByteCount(options.Secret) < 32)
         throw new InvalidOperationException("Jwt:Secret must be at least 32 bytes for HS256.");

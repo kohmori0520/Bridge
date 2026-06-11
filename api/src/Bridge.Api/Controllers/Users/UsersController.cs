@@ -26,7 +26,10 @@ public class UsersController : ControllerBase
 
         if (!result.Success)
         {
-            return Conflict(new
+            var statusCode = result.ErrorCode == "EMAIL_ALREADY_EXISTS"
+                ? StatusCodes.Status409Conflict
+                : StatusCodes.Status400BadRequest;
+            return StatusCode(statusCode, new
             {
                 error = new { code = result.ErrorCode, message = result.ErrorMessage }
             });

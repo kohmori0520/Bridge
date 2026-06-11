@@ -159,9 +159,9 @@ public class AssignmentService : IAssignmentService
             };
         }
 
+        // UpdatedAt を更新して保存するため追跡ありで取得する
         var assignment = await _db.Assignments
             .Include(a => a.Contracts)
-            .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == assignmentId);
 
         if (assignment is null)

@@ -8,7 +8,14 @@ public interface IProjectService
     Task<ProjectDetailResponse?> GetByIdAsync(int id);
     Task<ProjectDetailResponse> CreateAsync(CreateProjectRequest request, int ownerSalesId);
     Task<ProjectDetailResponse?> UpdateAsync(int id, UpdateProjectRequest request);
-    Task<bool> SoftDeleteAsync(int id);
+    Task<ProjectDeleteResult> SoftDeleteAsync(int id);
+}
+
+public enum ProjectDeleteResult
+{
+    Deleted,
+    NotFound,
+    HasAssignments,
 }
 
 public class ProjectListQuery

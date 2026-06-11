@@ -76,10 +76,20 @@ public class ProjectsController : ControllerBase
     [HttpDelete("{id:int}")]
     [Authorize(Policy = "SalesOnly")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(int id)
     {
-        var success = await _service.SoftDeleteAsync(id);
-        return success ? NoContent() : NotFound();
+        var result = await _service.SoftDeleteAsync(id);
+        return result switch
+        {
+            ProjectDeleteResult.Deleted => NoContent(),
+            ProjectDeleteResult.HasAssignments => Conflict(new
+            {
+                error = new { code = "PROJECT_HAS_ASSIGNMENTS", message = "アサイン履歴のある案件は削除できません。代わりにステータスを closed にしてください" }
+            }),
+            _ => NotFound(),
+        };
     }
 
     private int? ResolveOwnerSalesId(string? raw)

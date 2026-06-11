@@ -164,4 +164,68 @@ public class ProjectServiceTests
         result.Items[0].Title.Should().Be("対象案件");
         result.Items[0].AssignedCount.Should().Be(1);
     }
+
+    [Fact]
+    public async Task SoftDeleteAsync_DeletesProjectWithoutAssignments()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-project-service-tests");
+        var project = new Project
+        {
+            OwnerSales = new Sales { Name = "佐藤 営業" },
+            Title = "削除対象案件",
+            ClientName = "A社",
+            StartDate = new DateOnly(2026, 6, 1),
+            EndDate = new DateOnly(2026, 12, 31),
+            Status = ProjectStatus.Draft,
+        };
+        db.Projects.Add(project);
+        await db.SaveChangesAsync();
+        var service = new ProjectService(db);
+
+        var result = await service.SoftDeleteAsync(project.Id);
+
+        result.Should().Be(ProjectDeleteResult.Deleted);
+        var stored = await db.Projects.IgnoreQueryFilters().SingleAsync();
+        stored.DeletedAt.Should().NotBeNull();
+        (await service.GetByIdAsync(project.Id)).Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SoftDeleteAsync_ReturnsHasAssignments_WhenProjectHasAssignmentHistory()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-project-service-tests");
+        var project = new Project
+        {
+            OwnerSales = new Sales { Name = "佐藤 営業" },
+            Title = "アサイン済み案件",
+            ClientName = "A社",
+            StartDate = new DateOnly(2026, 6, 1),
+            EndDate = new DateOnly(2026, 12, 31),
+            Status = ProjectStatus.Open,
+            Assignments =
+            {
+                new Assignment { Engineer = new Engineer { Name = "田中 太郎" }, AssignedAt = new DateOnly(2026, 6, 1), Status = AssignmentStatus.Ended },
+            },
+        };
+        db.Projects.Add(project);
+        await db.SaveChangesAsync();
+        var service = new ProjectService(db);
+
+        var result = await service.SoftDeleteAsync(project.Id);
+
+        result.Should().Be(ProjectDeleteResult.HasAssignments);
+        var stored = await db.Projects.SingleAsync();
+        stored.DeletedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SoftDeleteAsync_ReturnsNotFound_WhenProjectDoesNotExist()
+    {
+        await using var db = TestDbContextFactory.Create("bridge-project-service-tests");
+        var service = new ProjectService(db);
+
+        var result = await service.SoftDeleteAsync(999);
+
+        result.Should().Be(ProjectDeleteResult.NotFound);
+    }
 }

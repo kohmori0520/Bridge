@@ -146,7 +146,7 @@ GET /resources?page=1&limit=20
 ### 4.2 ユーザー・プロフィール
 | Method | Path | 説明 | 権限 |
 |---|---|---|---|
-| POST | `/users` | ユーザー登録 | Admin |
+| POST | `/users` | ユーザー登録。メール重複は `409 EMAIL_ALREADY_EXISTS`、担当営業が存在しない場合は `400 SALES_NOT_FOUND` | Admin |
 | GET | `/sales` | 営業一覧 | Sales, Admin |
 | GET | `/sales/{id}` | 営業詳細 | Sales, Admin |
 | PATCH | `/sales/{id}` | 営業情報更新 | Self, Admin |
@@ -187,7 +187,7 @@ GET /resources?page=1&limit=20
 | GET | `/projects/{id}` | 案件詳細 | Authenticated |
 | POST | `/projects` | 案件作成 | Sales, Admin |
 | PATCH | `/projects/{id}` | 案件更新 | Sales, Admin |
-| DELETE | `/projects/{id}` | 案件削除(論理削除) | Sales, Admin |
+| DELETE | `/projects/{id}` | 案件削除(論理削除)。アサイン履歴のある案件は `409 PROJECT_HAS_ASSIGNMENTS` で拒否 | Sales, Admin |
 
 **`/projects` のクエリパラメータ**:
 | パラメータ | 型 | 説明 |
