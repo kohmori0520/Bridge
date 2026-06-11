@@ -1,12 +1,20 @@
-import { Dashboard } from '@mui/icons-material'
-import { Button, Stack } from '@mui/material'
+import { Dashboard, SearchOff } from '@mui/icons-material'
+import { Button, Stack, Typography } from '@mui/material'
+import { useEffect } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { PageHeader } from '../shared/components/PageHeader'
 
 export function NotFoundPage() {
+  useEffect(() => {
+    document.title = 'ページが見つかりません | Bridge'
+  }, [])
+
   return (
-    <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
-      <PageHeader title="404 / エラー" subtitle="指定された画面は見つかりませんでした" />
+    <Stack className="not-found-page" spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
+      <SearchOff className="not-found-icon" />
+      <Typography variant="h4">ページが見つかりません</Typography>
+      <Typography color="text.secondary">
+        URL が間違っているか、ページが移動・削除された可能性があります。
+      </Typography>
       <Button component={RouterLink} to="/" variant="contained" startIcon={<Dashboard />}>
         ホームへ戻る
       </Button>

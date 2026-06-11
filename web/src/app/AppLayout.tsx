@@ -2,11 +2,13 @@ import { Dashboard, Groups, History, Logout, ManageAccounts, Person, Search, Wor
 import { AppBar, Box, Button, Chip, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { useNotify } from '../shared/notifications/useNotify'
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
+  const notify = useNotify()
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />
@@ -52,6 +54,7 @@ export function AppLayout() {
               startIcon={<Logout />}
               onClick={async () => {
                 await logout()
+                notify('ログアウトしました', 'info')
                 navigate('/login')
               }}
             >

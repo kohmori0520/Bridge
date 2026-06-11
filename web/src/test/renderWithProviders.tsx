@@ -4,6 +4,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 import { AuthContext, type AuthContextValue } from '../auth/authContext'
+import { NotificationProvider } from '../shared/notifications/NotificationProvider'
 import type { User } from '../shared/types/domain'
 
 export function createTestQueryClient() {
@@ -40,11 +41,13 @@ export function renderWithProviders(ui: ReactElement, options: RenderWithProvide
 
   function Wrapper({ children }: { children: ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>
-        <AuthContext.Provider value={auth}>
-          <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
-        </AuthContext.Provider>
-      </QueryClientProvider>
+      <NotificationProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthContext.Provider value={auth}>
+            <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+          </AuthContext.Provider>
+        </QueryClientProvider>
+      </NotificationProvider>
     )
   }
 

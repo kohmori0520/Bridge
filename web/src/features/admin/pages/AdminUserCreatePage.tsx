@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { useNotify } from '../../../shared/notifications/useNotify'
 import type { Role } from '../../../shared/types/domain'
 import { adminApi, type CreateUserInput } from '../api/adminApi'
 import { useSalesOptions } from '../hooks/useAdmin'
@@ -20,15 +21,15 @@ const emptyForm: CreateUserInput = {
 
 export function AdminUserCreatePage() {
   const queryClient = useQueryClient()
+  const notify = useNotify()
   const { data: salesOptions = [] } = useSalesOptions()
   const [form, setForm] = useState<CreateUserInput>(emptyForm)
   const [error, setError] = useState<string | null>(null)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const mutation = useMutation({
     mutationFn: adminApi.createUser,
     onSuccess: async (createdUser) => {
-      setSuccessMessage(`${createdUser.email} を作成しました。`)
+      notify(`${createdUser.email} を作成しました`)
       setForm({ ...emptyForm, role: form.role })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['engineers'] }),
@@ -39,7 +40,6 @@ export function AdminUserCreatePage() {
 
   const updateForm = <K extends keyof CreateUserInput>(field: K, value: CreateUserInput[K]) => {
     setError(null)
-    setSuccessMessage(null)
     setForm((current) => ({ ...current, [field]: value }))
   }
 
@@ -55,7 +55,6 @@ export function AdminUserCreatePage() {
 
   const handleSubmit = () => {
     setError(null)
-    setSuccessMessage(null)
 
     if (!form.email.trim() || !form.password.trim() || !form.name.trim()) {
       setError('メールアドレス、パスワード、氏名は必須です。')
@@ -80,7 +79,6 @@ export function AdminUserCreatePage() {
       <PageHeader title="ユーザー作成" subtitle="Admin / 営業 / エンジニアのアカウントを作成します" backTo="/" />
       {error && <Alert severity="error">{error}</Alert>}
       {mutation.error && <Alert severity="error">{mutation.error instanceof Error ? mutation.error.message : 'ユーザー作成に失敗しました'}</Alert>}
-      {successMessage && <Alert severity="success">{successMessage}</Alert>}
       <Section title="アカウント情報">
         <Box className="form-grid">
           <TextField select label="ロール" value={form.role} onChange={(event) => handleRoleChange(event.target.value as Role)}>

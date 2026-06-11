@@ -23,7 +23,10 @@ export const bridgeTheme = createTheme({
       },
     },
     MuiButton: {
-      defaultProps: { size: 'small' },
+      defaultProps: { size: 'small', disableElevation: true },
+    },
+    MuiTooltip: {
+      defaultProps: { arrow: true },
     },
     MuiChip: {
       styleOverrides: {

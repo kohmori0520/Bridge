@@ -1,7 +1,7 @@
-import { Login } from '@mui/icons-material'
-import { Alert, Box, Button, FormControl, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography } from '@mui/material'
+import { Login, Visibility, VisibilityOff } from '@mui/icons-material'
+import { Alert, Box, Button, FormControl, IconButton, InputAdornment, InputLabel, MenuItem, Paper, Select, Stack, TextField, Typography } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import type { Role } from '../shared/types/domain'
@@ -20,7 +20,12 @@ export function LoginPage() {
   const [password, setPassword] = useState(demoAccounts.Engineer.password)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    document.title = 'ログイン | Bridge'
+  }, [])
 
   const handleRoleChange = (event: SelectChangeEvent) => {
     const nextRole = event.target.value as Role
@@ -47,27 +52,63 @@ export function LoginPage() {
       <Paper className="login-panel">
         <Typography variant="h4">Bridge</Typography>
         <Typography color="text.secondary">営業とエンジニアの契約・案件・マッチング情報をひとつに集約します。</Typography>
-        <Stack spacing={2}>
-          <TextField label="メールアドレス" value={email} onChange={(event) => setEmail(event.target.value)} />
-          <TextField label="パスワード" type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
-          <FormControl>
-            <InputLabel id="role-label">ログイン種別</InputLabel>
-            <Select labelId="role-label" value={role} label="ログイン種別" onChange={handleRoleChange}>
-              <MenuItem value="Admin">管理者</MenuItem>
-              <MenuItem value="Engineer">エンジニア</MenuItem>
-              <MenuItem value="Sales">営業</MenuItem>
-            </Select>
-          </FormControl>
-          <Button
-            size="large"
-            variant="contained"
-            startIcon={<Login />}
-            disabled={isSubmitting}
-            onClick={handleSubmit}
-          >
-            {isSubmitting ? 'ログイン中...' : 'ログイン'}
-          </Button>
-        </Stack>
+        <form
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!isSubmitting) void handleSubmit()
+          }}
+        >
+          <Stack spacing={2}>
+            <TextField
+              label="メールアドレス"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+            <TextField
+              label="パスワード"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              slotProps={{
+                input: {
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label={showPassword ? 'パスワードを隠す' : 'パスワードを表示'}
+                        edge="end"
+                        onClick={() => setShowPassword((current) => !current)}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+            <FormControl>
+              <InputLabel id="role-label">ログイン種別</InputLabel>
+              <Select labelId="role-label" value={role} label="ログイン種別" onChange={handleRoleChange}>
+                <MenuItem value="Admin">管理者</MenuItem>
+                <MenuItem value="Engineer">エンジニア</MenuItem>
+                <MenuItem value="Sales">営業</MenuItem>
+              </Select>
+            </FormControl>
+            <Button
+              type="submit"
+              size="large"
+              variant="contained"
+              startIcon={<Login />}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'ログイン中...' : 'ログイン'}
+            </Button>
+          </Stack>
+        </form>
         {error && <Alert severity="error">{error}</Alert>}
         <Alert severity="info">開発用ユーザーのメールアドレスとパスワードを初期入力しています。</Alert>
       </Paper>

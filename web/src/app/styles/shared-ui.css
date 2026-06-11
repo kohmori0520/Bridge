@@ -112,6 +112,33 @@
   background: #f8fbff;
 }
 
+.loading-state {
+  padding: 56px 16px;
+}
+
+.empty-state {
+  background: #fbfdff;
+  border: 1px dashed #c8d6e8;
+  border-radius: 8px;
+  padding: 40px 16px;
+}
+
+.empty-state-icon {
+  color: #9fb2ca;
+  font-size: 40px !important;
+}
+
+.not-found-page {
+  margin-inline: auto;
+  max-width: 460px;
+  padding-block: 64px;
+}
+
+.not-found-icon {
+  color: #9fb2ca;
+  font-size: 64px !important;
+}
+
 .summary-stats {
   display: grid;
   gap: 12px;

@@ -20,6 +20,17 @@ function renderLoginPage() {
   )
 }
 
+function mockLoginSuccess() {
+  server.use(
+    http.post(api('/auth/login'), () =>
+      HttpResponse.json({
+        token: 'jwt-token',
+        user: { id: 1, email: 'tanaka@bridge.local', role: 'Engineer', salesId: null, engineerId: 5, name: '田中 太郎' },
+      }),
+    ),
+  )
+}
+
 describe('LoginPage', () => {
   it('初期表示ではエンジニアの開発用ユーザーが入力されている', () => {
     renderLoginPage()
@@ -39,15 +50,32 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText('パスワード')).toHaveValue('Sales1234!')
   })
 
+  it('パスワードの表示/非表示を切り替えられる', async () => {
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    expect(screen.getByLabelText('パスワード')).toHaveAttribute('type', 'password')
+
+    await user.click(screen.getByRole('button', { name: 'パスワードを表示' }))
+    expect(screen.getByLabelText('パスワード')).toHaveAttribute('type', 'text')
+
+    await user.click(screen.getByRole('button', { name: 'パスワードを隠す' }))
+    expect(screen.getByLabelText('パスワード')).toHaveAttribute('type', 'password')
+  })
+
+  it('Enter キーでログインを送信できる', async () => {
+    mockLoginSuccess()
+    const user = userEvent.setup()
+    renderLoginPage()
+
+    await user.click(screen.getByLabelText('パスワード'))
+    await user.keyboard('{Enter}')
+
+    expect(await screen.findByText('ホーム画面')).toBeInTheDocument()
+  })
+
   it('ログイン成功時はセッションを保存しホームへ遷移する', async () => {
-    server.use(
-      http.post(api('/auth/login'), () =>
-        HttpResponse.json({
-          token: 'jwt-token',
-          user: { id: 1, email: 'tanaka@bridge.local', role: 'Engineer', salesId: null, engineerId: 5, name: '田中 太郎' },
-        }),
-      ),
-    )
+    mockLoginSuccess()
     const user = userEvent.setup()
     renderLoginPage()
 

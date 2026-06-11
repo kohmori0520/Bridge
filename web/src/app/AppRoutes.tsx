@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { RequireRole } from '../auth/RequireRole'
 import { LoadingState } from '../shared/components/LoadingState'
 import { AppLayout } from './AppLayout'
+import { ScrollToTop } from './ScrollToTop'
 
 const LoginPage = lazy(() => import('../auth/LoginPage').then((module) => ({ default: module.LoginPage })))
 const AdminExpiringContractsPage = lazy(() =>
@@ -44,6 +45,7 @@ const NotFoundPage = lazy(() => import('./NotFoundPage').then((module) => ({ def
 export function AppRoutes() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Suspense fallback={<LoadingState message="画面を読み込み中です。" />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />

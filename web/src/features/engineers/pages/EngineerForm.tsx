@@ -7,6 +7,7 @@ import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { LoadingState } from '../../../shared/components/LoadingState'
+import { useNotify } from '../../../shared/notifications/useNotify'
 import { getSkillCategoryLabel, groupBySkillCategory, sortSkillCategories } from '../../../shared/utils/skillCategories'
 import type { SkillOption } from '../../projects/api/projectApi'
 import { useSkills } from '../../projects/hooks/useProjects'
@@ -43,6 +44,7 @@ export function EngineerForm({ mode }: { mode: 'new' | 'edit' }) {
   const engineerId = Number(id)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const notify = useNotify()
   const { data: skills = [] } = useSkills()
   const { data: profile, isLoading } = useEngineerProfile(engineerId, mode === 'edit' && Number.isFinite(engineerId))
   const [form, setForm] = useState<EngineerFormState>(emptyForm)
@@ -90,6 +92,7 @@ export function EngineerForm({ mode }: { mode: 'new' | 'edit' }) {
         queryClient.invalidateQueries({ queryKey: ['engineers', engineerId] }),
         queryClient.invalidateQueries({ queryKey: ['engineers', engineerId, 'profile'] }),
       ])
+      notify('技術者情報を保存しました')
       navigate(`/engineers/${savedProfile.id}`)
     },
   })

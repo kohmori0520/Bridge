@@ -6,6 +6,7 @@ import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
+import { useNotify } from '../../../shared/notifications/useNotify'
 import { getSkillCategoryLabel, groupBySkillCategory, sortSkillCategories } from '../../../shared/utils/skillCategories'
 import { projectApi, type ProjectRequiredSkillInput, type SaveProjectInput, type SkillOption } from '../api/projectApi'
 import { useProject, useSkills } from '../hooks/useProjects'
@@ -47,6 +48,7 @@ export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
   const projectId = Number(id)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const notify = useNotify()
   const { data: project, isLoading: isProjectLoading } = useProject(projectId, mode === 'edit' && Number.isFinite(projectId))
   const { data: skills = [] } = useSkills()
   const [form, setForm] = useState<ProjectFormState>(emptyProjectForm)
@@ -108,6 +110,7 @@ export function ProjectForm({ mode }: { mode: 'new' | 'edit' }) {
       mode === 'new' ? projectApi.create(input) : projectApi.update(projectId, input),
     onSuccess: async (savedProject) => {
       await queryClient.invalidateQueries({ queryKey: ['projects'] })
+      notify(mode === 'new' ? '案件を作成しました' : '案件を保存しました')
       navigate(`/projects/${savedProject.id}`)
     },
   })

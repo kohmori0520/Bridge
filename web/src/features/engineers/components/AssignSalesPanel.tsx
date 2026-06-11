@@ -1,9 +1,10 @@
 import { Save } from '@mui/icons-material'
-import { Alert, Autocomplete, Button, Stack, TextField } from '@mui/material'
+import { Autocomplete, Button, Stack, TextField } from '@mui/material'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { adminApi, type SalesOption } from '../../admin/api/adminApi'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
+import { useNotify } from '../../../shared/notifications/useNotify'
 import { engineerApi } from '../api/engineerApi'
 
 type AssignSalesPanelProps = {
@@ -13,12 +14,12 @@ type AssignSalesPanelProps = {
 
 export function AssignSalesPanel({ engineerId, currentSalesId }: AssignSalesPanelProps) {
   const queryClient = useQueryClient()
+  const notify = useNotify()
   const { data: salesOptions = [], isLoading } = useQuery({
     queryKey: ['admin', 'sales'],
     queryFn: () => adminApi.listSales(),
   })
   const [selected, setSelected] = useState<SalesOption | null>(null)
-  const [savedMessage, setSavedMessage] = useState<string | null>(null)
   const initialSelected = salesOptions.find((option) => option.id === currentSalesId) ?? null
   const value = selected ?? initialSelected
   const isDirty = (value?.id ?? null) !== currentSalesId
@@ -26,7 +27,7 @@ export function AssignSalesPanel({ engineerId, currentSalesId }: AssignSalesPane
   const mutation = useMutation({
     mutationFn: (salesId: number | null) => engineerApi.assignSales(engineerId, salesId),
     onSuccess: async () => {
-      setSavedMessage('担当営業を更新しました')
+      notify('担当営業を更新しました')
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['engineers'] }),
         queryClient.invalidateQueries({ queryKey: ['engineers', engineerId] }),
@@ -45,7 +46,6 @@ export function AssignSalesPanel({ engineerId, currentSalesId }: AssignSalesPane
         isOptionEqualToValue={(option, candidate) => option.id === candidate.id}
         onChange={(_, next) => {
           setSelected(next ?? null)
-          setSavedMessage(null)
         }}
         renderInput={(params) => <TextField {...params} label="担当営業" placeholder="未選択で担当を外す" />}
       />
@@ -61,7 +61,6 @@ export function AssignSalesPanel({ engineerId, currentSalesId }: AssignSalesPane
         </Button>
       </Stack>
       {mutation.error && <ApiErrorAlert error={mutation.error} fallbackMessage="担当営業の更新に失敗しました" />}
-      {savedMessage && !mutation.isPending && !mutation.error && <Alert severity="success">{savedMessage}</Alert>}
     </Stack>
   )
 }

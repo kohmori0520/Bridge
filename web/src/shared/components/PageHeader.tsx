@@ -1,6 +1,6 @@
 import { ArrowBack } from '@mui/icons-material'
 import { Box, Button, Stack, Typography } from '@mui/material'
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
 
 type PageHeaderProps = {
@@ -11,6 +11,10 @@ type PageHeaderProps = {
 }
 
 export function PageHeader({ title, subtitle, actions, backTo }: PageHeaderProps) {
+  useEffect(() => {
+    document.title = `${title} | Bridge`
+  }, [title])
+
   return (
     <Stack className="page-header" spacing={1}>
       {backTo && (

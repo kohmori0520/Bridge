@@ -69,5 +69,6 @@ describe('AppLayout', () => {
 
     expect(logout).toHaveBeenCalledTimes(1)
     expect(await screen.findByText('ログイン画面')).toBeInTheDocument()
+    expect(screen.getByText('ログアウトしました')).toBeInTheDocument()
   })
 })

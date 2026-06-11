@@ -6,6 +6,7 @@ import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { ApiErrorAlert } from '../../../shared/components/ApiErrorAlert'
 import { LoadingState } from '../../../shared/components/LoadingState'
+import { useNotify } from '../../../shared/notifications/useNotify'
 import { getSkillCategoryLabel, groupBySkillCategory, sortSkillCategories } from '../../../shared/utils/skillCategories'
 import { engineerApi, type SaveEngineerProfileInput } from '../../engineers/api/engineerApi'
 import type { SkillOption } from '../../projects/api/projectApi'
@@ -38,6 +39,7 @@ const preferredRoleCategories = new Set(['Role'])
 
 export function MyProfilePage() {
   const queryClient = useQueryClient()
+  const notify = useNotify()
   const { data: skills = [] } = useSkills()
   const { data: profile, isLoading } = useQuery({
     queryKey: ['engineers', 'me', 'profile'],
@@ -46,7 +48,6 @@ export function MyProfilePage() {
   const [form, setForm] = useState<ProfileForm>(emptyProfileForm)
   const [skillRows, setSkillRows] = useState<SkillRow[]>([])
   const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
   const groupedSkills = useMemo(() => groupBySkillCategory(skills), [skills])
   const skillGroups = useMemo(() => sortSkillCategories(Object.keys(groupedSkills)), [groupedSkills])
   const preferredSkillChoices = useMemo(
@@ -93,7 +94,7 @@ export function MyProfilePage() {
   const mutation = useMutation({
     mutationFn: (input: SaveEngineerProfileInput) => engineerApi.saveMyProfile(input),
     onSuccess: async () => {
-      setSaved(true)
+      notify('プロフィールを保存しました')
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['engineers', 'me', 'profile'] }),
         queryClient.invalidateQueries({ queryKey: ['engineers'] }),
@@ -103,12 +104,10 @@ export function MyProfilePage() {
   })
 
   const updateForm = <K extends keyof ProfileForm>(field: K, value: ProfileForm[K]) => {
-    setSaved(false)
     setForm((current) => ({ ...current, [field]: value }))
   }
 
   const updatePreferredSkillGroup = (targetGroup: Set<string>, values: SkillOption[]) => {
-    setSaved(false)
     setForm((current) => {
       const preservedSkillIds = current.preferredSkillIds.filter((skillId) => {
         const skill = skills.find((option) => option.id === skillId)
@@ -130,7 +129,6 @@ export function MyProfilePage() {
   }
 
   const updateSkill = (index: number, patch: Partial<SkillRow>) => {
-    setSaved(false)
     setSkillRows((current) => current.map((row, i) => (i === index ? { ...row, ...patch } : row)))
   }
 
@@ -138,18 +136,15 @@ export function MyProfilePage() {
     const selectedIds = new Set(selectedSkillIds)
     const firstSkill = skills.find((skill) => !selectedIds.has(String(skill.id))) ?? skills[0]
     if (!firstSkill) return
-    setSaved(false)
     setSkillRows((current) => [...current, { skillId: String(firstSkill.id), years: '1' }])
   }
 
   const removeSkill = (index: number) => {
-    setSaved(false)
     setSkillRows((current) => current.filter((_, i) => i !== index))
   }
 
   const handleSave = () => {
     setError(null)
-    setSaved(false)
 
     if (!form.name.trim()) {
       setError('氏名を入力してください。')
@@ -201,7 +196,6 @@ export function MyProfilePage() {
       <PageHeader title="自分のプロフィール編集" subtitle="マッチングに使う情報は選択式で登録します" />
       {error && <Alert severity="error">{error}</Alert>}
       {mutation.error && <ApiErrorAlert error={mutation.error} fallbackMessage="保存に失敗しました" />}
-      {saved && <Alert severity="success">プロフィールを保存しました。</Alert>}
       <Section title="基本情報">
         <Box className="form-grid">
           <TextField label="氏名" value={form.name} onChange={(event) => updateForm('name', event.target.value)} />
