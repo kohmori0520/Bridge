@@ -3,21 +3,15 @@ import { Alert, Box, Button, FormControl, IconButton, InputAdornment, InputLabel
 import type { SelectChangeEvent } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { demoAccounts } from './demoAccounts'
 import { useAuth } from './useAuth'
 import type { Role } from '../shared/types/domain'
-
-// Development 環境の DemoUserSeeder が作成するアカウント(README 参照)
-const demoAccounts: Record<Role, { email: string; password: string }> = {
-  Admin: { email: 'admin@bridge.local', password: 'Admin1234!' },
-  Sales: { email: 'sato@bridge.local', password: 'Sales1234!' },
-  Engineer: { email: 'tanaka@bridge.local', password: 'Engineer1234!' },
-}
 
 export function LoginPage() {
   const { login } = useAuth()
   const [role, setRole] = useState<Role>('Engineer')
-  const [email, setEmail] = useState(demoAccounts.Engineer.email)
-  const [password, setPassword] = useState(demoAccounts.Engineer.password)
+  const [email, setEmail] = useState(demoAccounts?.Engineer.email ?? '')
+  const [password, setPassword] = useState(demoAccounts?.Engineer.password ?? '')
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -28,6 +22,7 @@ export function LoginPage() {
   }, [])
 
   const handleRoleChange = (event: SelectChangeEvent) => {
+    if (!demoAccounts) return
     const nextRole = event.target.value as Role
     setRole(nextRole)
     setEmail(demoAccounts[nextRole].email)
@@ -90,14 +85,16 @@ export function LoginPage() {
                 },
               }}
             />
-            <FormControl>
-              <InputLabel id="role-label">ログイン種別</InputLabel>
-              <Select labelId="role-label" value={role} label="ログイン種別" onChange={handleRoleChange}>
-                <MenuItem value="Admin">管理者</MenuItem>
-                <MenuItem value="Engineer">エンジニア</MenuItem>
-                <MenuItem value="Sales">営業</MenuItem>
-              </Select>
-            </FormControl>
+            {demoAccounts && (
+              <FormControl>
+                <InputLabel id="role-label">ログイン種別</InputLabel>
+                <Select labelId="role-label" value={role} label="ログイン種別" onChange={handleRoleChange}>
+                  <MenuItem value="Admin">管理者</MenuItem>
+                  <MenuItem value="Engineer">エンジニア</MenuItem>
+                  <MenuItem value="Sales">営業</MenuItem>
+                </Select>
+              </FormControl>
+            )}
             <Button
               type="submit"
               size="large"
@@ -110,7 +107,9 @@ export function LoginPage() {
           </Stack>
         </form>
         {error && <Alert severity="error">{error}</Alert>}
-        <Alert severity="info">開発用ユーザーのメールアドレスとパスワードを初期入力しています。</Alert>
+        {demoAccounts && (
+          <Alert severity="info">開発用ユーザーのメールアドレスとパスワードを初期入力しています。</Alert>
+        )}
       </Paper>
     </Box>
   )

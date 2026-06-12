@@ -8,12 +8,15 @@ import '../features/matching/styles/matching.css'
 import '../features/projects/styles/projects.css'
 import { AppProviders } from './AppProviders'
 import { AppRoutes } from './AppRoutes'
+import { ErrorBoundary } from './ErrorBoundary'
 
 function App() {
   return (
-    <AppProviders>
-      <AppRoutes />
-    </AppProviders>
+    <ErrorBoundary>
+      <AppProviders>
+        <AppRoutes />
+      </AppProviders>
+    </ErrorBoundary>
   )
 }
 

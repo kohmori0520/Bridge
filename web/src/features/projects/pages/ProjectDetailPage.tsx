@@ -7,6 +7,7 @@ import { Info } from '../../../shared/components/Info'
 import { LoadingState } from '../../../shared/components/LoadingState'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { parseRouteId } from '../../../shared/utils/routeParams'
 import { MatchCandidateCard } from '../../matching/components/MatchCandidateCard'
 import { MatchProjectRow } from '../../matching/components/MatchProjectRow'
 import { useProjectMatches } from '../../matching/hooks/useMatching'
@@ -16,9 +17,14 @@ import { useProject } from '../hooks/useProjects'
 export function ProjectDetailPage() {
   const { user } = useAuth()
   const { id } = useParams()
-  const projectId = Number(id) || 1
-  const { data: project, isLoading } = useProject(projectId)
-  const { data: matchCandidates = [] } = useProjectMatches(projectId)
+  const projectId = parseRouteId(id)
+  const isValidId = projectId !== null
+  const { data: project, isLoading } = useProject(projectId ?? 0, isValidId)
+  const { data: matchCandidates = [] } = useProjectMatches(projectId ?? 0, user?.role === 'Sales' && isValidId)
+
+  if (!isValidId) {
+    return <EmptyState message="案件が見つかりませんでした。" />
+  }
 
   if (isLoading) {
     return <LoadingState message="案件情報を読み込み中です。" />
