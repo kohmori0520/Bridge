@@ -1,4 +1,4 @@
-import { Dashboard, Groups, History, Logout, ManageAccounts, Person, Search, UploadFile, Work } from '@mui/icons-material'
+import { Dashboard, Groups, History, LockReset, Logout, ManageAccounts, Person, Search, UploadFile, Work } from '@mui/icons-material'
 import { AppBar, Box, Button, Chip, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
@@ -51,6 +51,9 @@ export function AppLayout() {
           <Box className="user-area">
             <Chip size="small" color={user.role === 'Admin' ? 'warning' : user.role === 'Sales' ? 'primary' : 'success'} label={user.role} />
             <Typography variant="body2">{user.name} さん</Typography>
+            <Button color="inherit" startIcon={<LockReset />} component={RouterLink} to="/me/password">
+              パスワード変更
+            </Button>
             <Button
               color="inherit"
               startIcon={<Logout />}

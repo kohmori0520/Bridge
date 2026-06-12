@@ -39,6 +39,9 @@ const ProjectForm = lazy(() =>
 const ProjectsPage = lazy(() =>
   import('../features/projects/pages/ProjectsPage').then((module) => ({ default: module.ProjectsPage })),
 )
+const ChangePasswordPage = lazy(() =>
+  import('../auth/ChangePasswordPage').then((module) => ({ default: module.ChangePasswordPage })),
+)
 const ImportPage = lazy(() =>
   import('../features/import/pages/ImportPage').then((module) => ({ default: module.ImportPage })),
 )
@@ -80,6 +83,7 @@ export function AppRoutes() {
               path="/engineers/:id/edit"
               element={<RequireRole allowed={['Admin', 'Sales']}><EngineerForm mode="edit" /></RequireRole>}
             />
+            <Route path="/me/password" element={<ChangePasswordPage />} />
             <Route
               path="/import"
               element={<RequireRole allowed={['Admin', 'Sales']}><ImportPage /></RequireRole>}

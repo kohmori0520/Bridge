@@ -47,4 +47,10 @@ export const authApi = {
   logout: async () => {
     await apiRequest<void>('/auth/logout', { method: 'POST' })
   },
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    await apiRequest<void>('/auth/me/password', {
+      method: 'PUT',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    })
+  },
 }

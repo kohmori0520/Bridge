@@ -115,6 +115,59 @@ public class AuthControllerTests
         result.Should().BeOfType<UnauthorizedResult>();
     }
 
+    [Fact]
+    public async Task ChangePassword_UpdatesHash_AndAllowsLoginWithNewPassword()
+    {
+        await using var db = CreateDbContext();
+        var passwordHasher = new PasswordHasher();
+        var user = await SeedEngineerAsync(db, passwordHasher, "tanaka@bridge.local", "Password123!");
+        var service = new AuthService(db, passwordHasher, CreateJwtService());
+        var controller = new AuthController(service);
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = CreatePrincipal(user.Id.ToString()),
+            },
+        };
+
+        var result = await controller.ChangePassword(new ChangePasswordRequest
+        {
+            CurrentPassword = "Password123!",
+            NewPassword = "NewPassword456!",
+        });
+
+        result.Should().BeOfType<NoContentResult>();
+        (await service.LoginAsync(new LoginRequest { Email = "tanaka@bridge.local", Password = "NewPassword456!" }))
+            .Should().NotBeNull();
+        (await service.LoginAsync(new LoginRequest { Email = "tanaka@bridge.local", Password = "Password123!" }))
+            .Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ChangePassword_ReturnsBadRequest_WhenCurrentPasswordIsWrong()
+    {
+        await using var db = CreateDbContext();
+        var passwordHasher = new PasswordHasher();
+        var user = await SeedEngineerAsync(db, passwordHasher, "tanaka@bridge.local", "Password123!");
+        var controller = new AuthController(new AuthService(db, passwordHasher, CreateJwtService()));
+        controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = CreatePrincipal(user.Id.ToString()),
+            },
+        };
+
+        var result = await controller.ChangePassword(new ChangePasswordRequest
+        {
+            CurrentPassword = "WrongPassword!",
+            NewPassword = "NewPassword456!",
+        });
+
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
     private static BridgeDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<BridgeDbContext>()

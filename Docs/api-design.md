@@ -149,6 +149,7 @@ GET /resources?page=1&limit=20
 | POST | `/auth/login` | ログイン(JWT発行) | Anonymous |
 | POST | `/auth/logout` | ログアウト(クライアント側破棄のみ、サーバーno-op) | Authenticated |
 | GET | `/auth/me` | 現在のユーザー情報 | Authenticated |
+| PUT | `/auth/me/password` | パスワード変更。現在パスワード不一致は `400 INVALID_CURRENT_PASSWORD`(401 にするとフロントが自動ログアウトするため) | Authenticated |
 
 ### 4.2 ユーザー・プロフィール
 | Method | Path | 説明 | 権限 |

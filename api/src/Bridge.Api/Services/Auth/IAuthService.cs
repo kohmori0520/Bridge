@@ -6,4 +6,12 @@ public interface IAuthService
 {
     Task<LoginResponse?> LoginAsync(LoginRequest request);
     Task<MeResponse?> GetMeAsync(int userId);
+    Task<ChangePasswordResult> ChangePasswordAsync(int userId, ChangePasswordRequest request);
+}
+
+public enum ChangePasswordResult
+{
+    Success,
+    UserNotFound,
+    InvalidCurrentPassword,
 }
