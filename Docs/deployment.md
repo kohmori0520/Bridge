@@ -118,6 +118,18 @@ VITE_API_BASE_URL=https://bridge-api-mk.fly.dev
 
 `VITE_*` はビルド時に埋め込まれるため、変更後は Redeploy が必要です。
 
+### SPA Routing (vercel.json)
+
+`web/vercel.json` に rewrite を設定しています。存在しないパスへのリクエストはすべて `index.html` にフォールバックし、React Router がクライアント側でルーティングします。
+
+```json
+{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
+```
+
+この設定がないと、`/projects/1` などをリロードした際に Vercel が 404 を返します。
+
 ### Deploy
 
 Web は Vercel の GitHub 連携で自動デプロイします。GitHub Actions では typecheck / lint / build の検証のみ行います。
@@ -152,6 +164,23 @@ curl -i -X POST "https://bridge-api-mk.fly.dev/auth/login" \
 ```
 
 ## Common Issues
+
+### 深い URL をリロードすると 404 になる
+
+例:
+
+```text
+GET https://<your-vercel-domain>/projects/1 404
+```
+
+原因:
+
+- `web/vercel.json` の SPA rewrite が未設定、またはデプロイに含まれていない
+
+対応:
+
+- `web/vercel.json` がリポジトリに含まれていることを確認
+- Redeploy 後、`curl -I https://<your-vercel-domain>/projects/1` が `200` になることを確認
 
 ### Vercel から `http://localhost:5130` を叩いている
 

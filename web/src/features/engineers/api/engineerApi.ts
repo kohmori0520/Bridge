@@ -9,6 +9,7 @@ const roleCategories = new Set(['Role'])
 type ApiEngineerSummary = {
   id: number
   name: string
+  email?: string
   primarySales?: {
     id: number
     name: string
@@ -82,6 +83,7 @@ function toEngineer(response: ApiEngineerSummary | ApiEngineerDetail): Engineer 
   return {
     id: response.id,
     name: response.name,
+    email: response.email ?? '',
     status: response.isAvailable ? '空き' : '稼働中',
     project: detail.currentContract?.projectTitle ?? '-',
     availableFrom: detail.currentContract?.periodTo ?? '-',

@@ -106,3 +106,33 @@ describe('contractApi.listExpiring', () => {
     expect(searchParams!.get('days')).toBe('30')
   })
 })
+
+describe('contractApi.listMyExpiring', () => {
+  it('営業向けエンドポイントを days 付きで呼び、表示用に変換する', async () => {
+    let searchParams: URLSearchParams | null = null
+    server.use(
+      http.get(api('/sales/me/expiring-contracts'), ({ request }) => {
+        searchParams = new URL(request.url).searchParams
+        return HttpResponse.json({
+          items: [
+            {
+              contractId: 100,
+              assignmentId: 200,
+              engineer: { id: 1, name: '田中 太郎' },
+              project: { id: 5, title: '金融系Webアプリ開発', clientName: 'A銀行' },
+              periodTo: '2026-07-10',
+              daysRemaining: 12,
+              renewalStatus: 'not_planned',
+            },
+          ],
+        })
+      }),
+    )
+
+    const contracts = await contractApi.listMyExpiring(30)
+
+    expect(searchParams!.get('days')).toBe('30')
+    expect(contracts[0].engineerName).toBe('田中 太郎')
+    expect(contracts[0].renewalStatus).toBe('更新未定')
+  })
+})

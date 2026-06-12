@@ -48,6 +48,31 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
+    [HttpPut("me/password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue("sub");
+
+        if (!int.TryParse(userIdString, out var userId))
+            return Unauthorized();
+
+        var result = await _authService.ChangePasswordAsync(userId, request);
+        return result switch
+        {
+            ChangePasswordResult.Success => NoContent(),
+            // 401 はフロントが「セッション失効」と解釈して自動ログアウトするため 400 で返す
+            ChangePasswordResult.InvalidCurrentPassword => BadRequest(new
+            {
+                error = new { code = "INVALID_CURRENT_PASSWORD", message = "現在のパスワードが正しくありません" }
+            }),
+            _ => Unauthorized(),
+        };
+    }
+
     [HttpGet("me")]
     [Authorize]
     [ProducesResponseType(typeof(MeResponse), StatusCodes.Status200OK)]

@@ -14,3 +14,12 @@ export function useExpiringContracts(days = 30) {
     queryFn: () => contractApi.listExpiring(days),
   })
 }
+
+/** 自分の担当エンジニアの更新間近契約 (Sales ロールのときのみ enabled にする) */
+export function useMyExpiringContracts(days = 30, enabled = true) {
+  return useQuery({
+    queryKey: ['sales', 'expiring-contracts', days],
+    queryFn: () => contractApi.listMyExpiring(days),
+    enabled,
+  })
+}

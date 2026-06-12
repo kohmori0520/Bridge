@@ -1,5 +1,5 @@
 import { Add, Visibility } from '@mui/icons-material'
-import { Button, Chip, FormControlLabel, IconButton, Stack, Switch, Tooltip } from '@mui/material'
+import { Button, Chip, FormControlLabel, IconButton, Pagination, Stack, Switch, Tooltip } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
@@ -9,12 +9,15 @@ import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { SummaryStats } from '../../../shared/components/SummaryStats'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
+import { useIsMobile } from '../../../shared/hooks/useIsMobile'
+import { EngineerCardList } from '../components/EngineerCardList'
 import { useEngineers } from '../hooks/useEngineers'
 import type { Engineer } from '../../../shared/types/domain'
 
 export function EngineersPage() {
   const { user } = useAuth()
   const isSales = user?.role === 'Sales'
+  const isMobile = useIsMobile()
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
@@ -106,20 +109,32 @@ export function EngineersPage() {
       />
       {error ? <ApiErrorAlert error={error} fallbackMessage="技術者一覧の取得に失敗しました。" /> : null}
       <Section title="技術者">
-        <DataGrid
-          autoHeight
-          disableRowSelectionOnClick
-          density="compact"
-          rows={rows}
-          columns={columns}
-          loading={isLoading}
-          paginationMode="server"
-          rowCount={keyword || status !== 'all' ? rows.length : data?.total ?? 0}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[10, 20]}
-          localeText={{ noRowsLabel: '条件に合う技術者がありません' }}
-        />
+        {isMobile ? (
+          <Stack spacing={2}>
+            <EngineerCardList engineers={rows} />
+            <Pagination
+              count={Math.max(1, Math.ceil((keyword || status !== 'all' ? rows.length : data?.total ?? 0) / paginationModel.pageSize))}
+              page={paginationModel.page + 1}
+              onChange={(_, page) => setPaginationModel((model) => ({ ...model, page: page - 1 }))}
+              sx={{ alignSelf: 'center' }}
+            />
+          </Stack>
+        ) : (
+          <DataGrid
+            autoHeight
+            disableRowSelectionOnClick
+            density="compact"
+            rows={rows}
+            columns={columns}
+            loading={isLoading}
+            paginationMode="server"
+            rowCount={keyword || status !== 'all' ? rows.length : data?.total ?? 0}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[10, 20]}
+            localeText={{ noRowsLabel: '条件に合う技術者がありません' }}
+          />
+        )}
       </Section>
     </Stack>
   )

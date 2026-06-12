@@ -1,34 +1,44 @@
-import { Dashboard, Groups, History, Logout, ManageAccounts, Person, Search, UploadFile, Work } from '@mui/icons-material'
-import { AppBar, Box, Button, Chip, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
+import { Dashboard, Groups, History, LockReset, Logout, ManageAccounts, Person, Search, UploadFile, Work } from '@mui/icons-material'
+import { AppBar, Box, Button, Chip, Container, IconButton, Tab, Tabs, Toolbar, Tooltip, Typography } from '@mui/material'
 import { Link as RouterLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
+import { useIsMobile } from '../shared/hooks/useIsMobile'
 import { useNotify } from '../shared/notifications/useNotify'
+
+type NavTab = {
+  label: string
+  icon: React.ReactElement
+  to: string
+  /** PC 前提の機能(Excel インポート等)はモバイルのナビに出さない */
+  desktopOnly?: boolean
+}
 
 export function AppLayout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
   const notify = useNotify()
+  const isMobile = useIsMobile()
 
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location }} />
   }
 
-  const tabs =
+  const allTabs: NavTab[] =
     user.role === 'Admin'
       ? [
           { label: 'ホーム', icon: <Dashboard />, to: '/' },
           { label: 'ユーザー作成', icon: <ManageAccounts />, to: '/admin/users/new' },
           { label: '更新間近契約', icon: <History />, to: '/admin/contracts/expiring' },
           { label: '技術者', icon: <Groups />, to: '/engineers' },
-          { label: 'インポート', icon: <UploadFile />, to: '/import' },
+          { label: 'インポート', icon: <UploadFile />, to: '/import', desktopOnly: true },
         ]
       : user.role === 'Sales'
         ? [
             { label: 'ホーム', icon: <Dashboard />, to: '/' },
             { label: '案件', icon: <Work />, to: '/projects' },
             { label: '技術者', icon: <Groups />, to: '/engineers' },
-            { label: 'インポート', icon: <UploadFile />, to: '/import' },
+            { label: 'インポート', icon: <UploadFile />, to: '/import', desktopOnly: true },
           ]
         : [
             { label: 'ホーム', icon: <Dashboard />, to: '/' },
@@ -37,9 +47,16 @@ export function AppLayout() {
             { label: '公開案件', icon: <Work />, to: '/projects' },
             { label: 'マッチ', icon: <Search />, to: '/me/matches' },
           ]
+  const tabs = isMobile ? allTabs.filter((tab) => !tab.desktopOnly) : allTabs
   const currentTab = tabs.findIndex((tab) =>
     tab.to === '/' ? location.pathname === '/' : location.pathname.startsWith(tab.to),
   )
+
+  const handleLogout = async () => {
+    await logout()
+    notify('ログアウトしました', 'info')
+    navigate('/login')
+  }
 
   return (
     <Box className="app-shell">
@@ -50,18 +67,30 @@ export function AppLayout() {
           </Typography>
           <Box className="user-area">
             <Chip size="small" color={user.role === 'Admin' ? 'warning' : user.role === 'Sales' ? 'primary' : 'success'} label={user.role} />
-            <Typography variant="body2">{user.name} さん</Typography>
-            <Button
-              color="inherit"
-              startIcon={<Logout />}
-              onClick={async () => {
-                await logout()
-                notify('ログアウトしました', 'info')
-                navigate('/login')
-              }}
-            >
-              ログアウト
-            </Button>
+            {isMobile ? (
+              <>
+                <Tooltip title="パスワード変更">
+                  <IconButton color="inherit" component={RouterLink} to="/me/password" aria-label="パスワード変更">
+                    <LockReset />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="ログアウト">
+                  <IconButton color="inherit" onClick={handleLogout} aria-label="ログアウト">
+                    <Logout />
+                  </IconButton>
+                </Tooltip>
+              </>
+            ) : (
+              <>
+                <Typography variant="body2">{user.name} さん</Typography>
+                <Button color="inherit" startIcon={<LockReset />} component={RouterLink} to="/me/password">
+                  パスワード変更
+                </Button>
+                <Button color="inherit" startIcon={<Logout />} onClick={handleLogout}>
+                  ログアウト
+                </Button>
+              </>
+            )}
           </Box>
         </Toolbar>
         <Tabs

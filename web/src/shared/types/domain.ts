@@ -44,6 +44,7 @@ export type EngineerSkill = {
 export type Engineer = {
   id: number
   name: string
+  email: string
   status: '稼働中' | '空き'
   project: string
   availableFrom: string

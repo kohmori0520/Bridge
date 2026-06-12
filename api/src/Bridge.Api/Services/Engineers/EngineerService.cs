@@ -56,6 +56,7 @@ public class EngineerService : IEngineerService
 
         var total = await queryable.CountAsync();
         var engineers = await queryable
+            .Include(e => e.User)
             .Include(e => e.PrimarySales)
             .Include(e => e.Skills).ThenInclude(es => es.Skill)
             .Include(e => e.Assignments).ThenInclude(a => a.Project)
@@ -150,6 +151,7 @@ public class EngineerService : IEngineerService
         {
             Id = engineer.Id,
             Name = engineer.Name,
+            Email = engineer.User?.Email ?? string.Empty,
             PrimarySales = engineer.PrimarySales == null ? null : new PrimarySalesDto
             {
                 Id = engineer.PrimarySales.Id,

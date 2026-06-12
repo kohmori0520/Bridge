@@ -1,5 +1,5 @@
 import { Add, Visibility } from '@mui/icons-material'
-import { Button, Chip, IconButton, Stack, Tooltip } from '@mui/material'
+import { Button, Chip, IconButton, Pagination, Stack, Tooltip } from '@mui/material'
 import { DataGrid, type GridColDef } from '@mui/x-data-grid'
 import { useMemo, useState } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
@@ -9,12 +9,15 @@ import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
 import { SummaryStats } from '../../../shared/components/SummaryStats'
 import { ToolbarPanel } from '../../../shared/components/ToolbarPanel'
+import { useIsMobile } from '../../../shared/hooks/useIsMobile'
+import { ProjectCardList } from '../components/ProjectCardList'
 import { useEngineerProjectList, useProjects } from '../hooks/useProjects'
 import type { Project, Role } from '../../../shared/types/domain'
 
 export function ProjectsPage() {
   const { user } = useAuth()
   const role: Role = user?.role ?? 'Engineer'
+  const isMobile = useIsMobile()
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [keyword, setKeyword] = useState('')
   const [status, setStatus] = useState('all')
@@ -127,20 +130,32 @@ export function ProjectsPage() {
       />
       {error ? <ApiErrorAlert error={error} fallbackMessage="案件一覧の取得に失敗しました。" /> : null}
       <Section title={role === 'Sales' ? '案件' : '公開案件'}>
-        <DataGrid
-          autoHeight
-          disableRowSelectionOnClick
-          density="compact"
-          rows={rows}
-          columns={columns}
-          loading={isLoading}
-          paginationMode="server"
-          rowCount={keyword || status !== 'all' ? rows.length : data?.total ?? 0}
-          paginationModel={paginationModel}
-          onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[10, 20]}
-          localeText={{ noRowsLabel: '条件に合う案件がありません' }}
-        />
+        {isMobile ? (
+          <Stack spacing={2}>
+            <ProjectCardList projects={rows} showMatchScore={role === 'Engineer'} />
+            <Pagination
+              count={Math.max(1, Math.ceil((keyword || status !== 'all' ? rows.length : data?.total ?? 0) / paginationModel.pageSize))}
+              page={paginationModel.page + 1}
+              onChange={(_, page) => setPaginationModel((model) => ({ ...model, page: page - 1 }))}
+              sx={{ alignSelf: 'center' }}
+            />
+          </Stack>
+        ) : (
+          <DataGrid
+            autoHeight
+            disableRowSelectionOnClick
+            density="compact"
+            rows={rows}
+            columns={columns}
+            loading={isLoading}
+            paginationMode="server"
+            rowCount={keyword || status !== 'all' ? rows.length : data?.total ?? 0}
+            paginationModel={paginationModel}
+            onPaginationModelChange={setPaginationModel}
+            pageSizeOptions={[10, 20]}
+            localeText={{ noRowsLabel: '条件に合う案件がありません' }}
+          />
+        )}
       </Section>
     </Stack>
   )

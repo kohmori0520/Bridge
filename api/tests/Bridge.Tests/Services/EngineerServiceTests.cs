@@ -20,6 +20,7 @@ public class EngineerServiceTests
         var availableEngineer = new Engineer
         {
             Name = "田中 太郎",
+            User = new User { Email = "tanaka@bridge.local", PasswordHash = "hash", Role = UserRole.Engineer },
             PrimarySales = sales,
             Skills =
             {
@@ -29,6 +30,7 @@ public class EngineerServiceTests
         var busyEngineer = new Engineer
         {
             Name = "鈴木 花子",
+            User = new User { Email = "suzuki@bridge.local", PasswordHash = "hash", Role = UserRole.Engineer },
             PrimarySales = sales,
             Skills =
             {
@@ -69,6 +71,7 @@ public class EngineerServiceTests
         result.Items.Should().ContainSingle();
         result.Pagination.Total.Should().Be(1);
         result.Items[0].Name.Should().Be("鈴木 花子");
+        result.Items[0].Email.Should().Be("suzuki@bridge.local");
         result.Items[0].IsAvailable.Should().BeFalse();
         var currentContract = result.Items[0].CurrentContract;
         currentContract.Should().NotBeNull();
