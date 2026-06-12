@@ -16,6 +16,7 @@ using Bridge.Api.Services.Assignments;
 using Bridge.Api.Services.Skills;
 using Bridge.Api.Services.ExpiringContracts;
 using Bridge.Api.Services.Matching;
+using Bridge.Api.Services.Imports;
 using Bridge.Api.Middleware;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
@@ -137,6 +138,7 @@ builder.Services.AddScoped<IEngineerSkillService, EngineerSkillService>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 builder.Services.AddScoped<IExpiringContractService, ExpiringContractService>();
 builder.Services.AddScoped<IMatchingService, MatchingService>();
+builder.Services.AddScoped<IExcelImportService, ExcelImportService>();
 // Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

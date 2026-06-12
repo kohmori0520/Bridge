@@ -39,9 +39,10 @@ async function readErrorMessage(response: Response) {
   }
 }
 
-export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function fetchWithAuth(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers)
-  if (!headers.has('Content-Type') && init.body) {
+  // FormData は Content-Type をブラウザに任せる (boundary 付与のため) ので文字列ボディのみ JSON 扱い
+  if (!headers.has('Content-Type') && typeof init.body === 'string') {
     headers.set('Content-Type', 'application/json')
   }
   if (accessToken) {
@@ -63,9 +64,21 @@ export async function apiRequest<T>(path: string, init: RequestInit = {}): Promi
     throw new ApiError(response.status, await readErrorMessage(response))
   }
 
+  return response
+}
+
+export async function apiRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await fetchWithAuth(path, init)
+
   if (response.status === 204) {
     return undefined as T
   }
 
   return response.json() as Promise<T>
+}
+
+/** バイナリ (xlsx 等) を取得する。エラー処理は apiRequest と共通 */
+export async function apiRequestBlob(path: string, init: RequestInit = {}): Promise<Blob> {
+  const response = await fetchWithAuth(path, init)
+  return response.blob()
 }
