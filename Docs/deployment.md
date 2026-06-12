@@ -59,6 +59,20 @@ cd api
 fly deploy --remote-only --config fly.toml
 ```
 
+### Database Migrations
+
+Production では起動時に未適用のマイグレーションを自動適用します(`fly.toml` の `Database__MigrateOnStartup = "true"`)。デプロイのたびにスキーマが追従するため、手動の `dotnet ef database update` は不要です。
+
+- 適用されたマイグレーションは起動ログに `Applying N pending migration(s): ...` と出力されます
+- 単一マシン運用が前提です。複数マシンに増やす場合は同時適用を避ける仕組み(デプロイ前のCIステップ化など)に切り替えてください
+- 破壊的な変更(カラム削除など)を含むマイグレーションは、デプロイ前にバックアップを取得してください(後述)
+
+ローカル開発では従来どおり手動で適用します:
+
+```bash
+cd api && dotnet ef database update --project src/Bridge.Infrastructure --startup-project src/Bridge.Api
+```
+
 ### Health Check
 
 ```bash
@@ -217,6 +231,35 @@ fly secrets set -a bridge-api-mk KEY=value
 cd api
 fly secrets set KEY=value
 ```
+
+## Database Backup & Restore
+
+DB は Supabase PostgreSQL です。実データ(エンジニアの個人情報・単価・契約)を載せる前に、バックアップ体制を確認してください。
+
+### Supabase 側の自動バックアップ
+
+- **Free プランには自動バックアップがありません**。実運用では Pro プラン(日次バックアップ・7日保持)以上を推奨します
+- プランと保持期間は Supabase Dashboard → Database → Backups で確認できます
+
+### 手動バックアップ(pg_dump)
+
+プランに関わらず、破壊的マイグレーションの前や定期実行用に `scripts/backup-db.sh` を使えます:
+
+```bash
+export DATABASE_URL="postgresql://<user>:<password>@<host>:5432/postgres"
+./scripts/backup-db.sh            # backups/bridge_YYYYMMDD_HHMMSS.dump に出力
+```
+
+- 出力先 `backups/` は `.gitignore` 済みです。**ダンプには個人情報が含まれるため、Git や共有ストレージに置かないでください**
+- `pg_dump` のバージョンは Supabase の PostgreSQL メジャーバージョンに合わせてください
+
+### リストア
+
+```bash
+pg_restore --clean --if-exists --no-owner -d "$DATABASE_URL" backups/bridge_YYYYMMDD_HHMMSS.dump
+```
+
+**運用開始前に一度リストア演習を行い、復旧できることを確認してください。**(空の Supabase プロジェクトを一時的に作って戻すのが安全です)
 
 ## Security Notes
 

@@ -61,3 +61,6 @@ Thumbs.db
 # Local docs / notes
 Claude.md
 Docs/Current-Architecture.md
+
+# Database backups (pg_dump output, contains personal data)
+backups/
