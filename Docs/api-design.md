@@ -219,6 +219,15 @@ GET /resources?page=1&limit=20
 | GET | `/projects/{id}/matches` | 案件にマッチする技術者 | Sales, Admin |
 | GET | `/engineers/me/matches` | 自分にマッチする案件 | Engineer |
 
+### 4.8 Excel インポート
+
+詳細は `Docs/excel-import.md` を参照。
+
+| Method | Path | 説明 | 権限 |
+|---|---|---|---|
+| GET | `/imports/template` | 取り込み用テンプレート xlsx | Sales, Admin |
+| POST | `/imports/excel?dryRun=true\|false` | Excel 一括取り込み(dryRun=true で検証のみ) | Sales, Admin |
+
 ---
 
 ## 5. 主要レスポンス構造
