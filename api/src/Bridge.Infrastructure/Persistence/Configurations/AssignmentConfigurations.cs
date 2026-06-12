@@ -25,8 +25,11 @@ public class AssignmentConfiguration : IEntityTypeConfiguration<Assignment>
             .HasForeignKey(a => a.ProjectId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // 同じエンジニアを同じ案件に2回アサインできない
-        builder.HasIndex(a => new { a.EngineerId, a.ProjectId }).IsUnique();
+        // 同じエンジニア×同じ案件で「同時にアクティブ」なアサインは1つだけ。
+        // ended/cancelled の履歴が残っていても再参画(新規アサイン)は可能
+        builder.HasIndex(a => new { a.EngineerId, a.ProjectId })
+            .IsUnique()
+            .HasFilter("status = 'Active'");
         builder.HasIndex(a => a.Status);
     }
 }

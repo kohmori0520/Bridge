@@ -106,3 +106,11 @@ public class CreateAssignmentResult
     public string? ErrorCode { get; set; }
     public string? ErrorMessage { get; set; }
 }
+
+public class UpdateAssignmentResult
+{
+    public bool Success { get; set; }
+    public AssignmentDetailResponse? Assignment { get; set; }
+    public string? ErrorCode { get; set; }
+    public string? ErrorMessage { get; set; }
+}

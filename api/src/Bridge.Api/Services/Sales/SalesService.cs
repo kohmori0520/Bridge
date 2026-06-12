@@ -53,7 +53,6 @@ public class SalesService : ISalesService
 
         sales.Name = request.Name;
         sales.Department = request.Department;
-        sales.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
 

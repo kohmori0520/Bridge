@@ -31,12 +31,15 @@ public class AssignmentService : IAssignmentService
         var projectExists = await _db.Projects.AnyAsync(p => p.Id == request.ProjectId);
         if (!projectExists) return Fail("PROJECT_NOT_FOUND", "指定された案件が存在しません");
 
-        // 同じエンジニア×同じ案件の重複アサインを禁止(DB側にも UK 制約あり)
+        // 同じエンジニア×同じ案件でアクティブなアサインの重複を禁止(DB側にも部分 UK 制約あり)。
+        // ended/cancelled の履歴があっても再参画は可能
         var duplicateExists = await _db.Assignments
-            .AnyAsync(a => a.EngineerId == request.EngineerId && a.ProjectId == request.ProjectId);
+            .AnyAsync(a => a.EngineerId == request.EngineerId
+                        && a.ProjectId == request.ProjectId
+                        && a.Status == AssignmentStatus.Active);
         if (duplicateExists)
         {
-            return Fail("DUPLICATE_ASSIGNMENT", "このエンジニアは既にこの案件にアサインされています");
+            return Fail("DUPLICATE_ASSIGNMENT", "このエンジニアは既にこの案件にアクティブなアサインがあります");
         }
 
         await using var tx = await _db.Database.BeginTransactionAsync();
@@ -98,19 +101,38 @@ public class AssignmentService : IAssignmentService
     }
 
     // ---- アサインのステータス更新(active → ended など) ----
-    public async Task<AssignmentDetailResponse?> UpdateStatusAsync(int id, UpdateAssignmentRequest request)
+    public async Task<UpdateAssignmentResult> UpdateStatusAsync(int id, UpdateAssignmentRequest request)
     {
         var assignment = await _db.Assignments.FirstOrDefaultAsync(a => a.Id == id);
-        if (assignment is null) return null;
+        if (assignment is null)
+        {
+            return new UpdateAssignmentResult { Success = false, ErrorCode = "ASSIGNMENT_NOT_FOUND", ErrorMessage = "指定されたアサインが存在しません" };
+        }
 
         if (!Enum.TryParse<AssignmentStatus>(request.Status, ignoreCase: true, out var newStatus))
-            return null;
+        {
+            return new UpdateAssignmentResult { Success = false, ErrorCode = "INVALID_STATUS", ErrorMessage = "ステータスが不正です" };
+        }
+
+        // 再アクティブ化は、同じエンジニア×案件に別のアクティブなアサインがないことを確認
+        // (部分 UK 制約違反による 500 を防ぐ)
+        if (newStatus == AssignmentStatus.Active && assignment.Status != AssignmentStatus.Active)
+        {
+            var conflictExists = await _db.Assignments
+                .AnyAsync(a => a.Id != id
+                            && a.EngineerId == assignment.EngineerId
+                            && a.ProjectId == assignment.ProjectId
+                            && a.Status == AssignmentStatus.Active);
+            if (conflictExists)
+            {
+                return new UpdateAssignmentResult { Success = false, ErrorCode = "DUPLICATE_ASSIGNMENT", ErrorMessage = "このエンジニアは既にこの案件にアクティブなアサインがあります" };
+            }
+        }
 
         assignment.Status = newStatus;
-        assignment.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
 
-        return await GetByIdAsync(id);
+        return new UpdateAssignmentResult { Success = true, Assignment = await GetByIdAsync(id) };
     }
 
     // ---- エンジニアの全アサイン+契約履歴(API 設計書 5.2 節) ----

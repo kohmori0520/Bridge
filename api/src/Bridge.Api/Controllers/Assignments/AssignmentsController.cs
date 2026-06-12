@@ -52,10 +52,24 @@ public class AssignmentsController : ControllerBase
     [HttpPatch("{id:int}")]
     [Authorize(Policy = "SalesOnly")]
     [ProducesResponseType(typeof(AssignmentDetailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateAssignmentRequest request)
     {
         var result = await _service.UpdateStatusAsync(id, request);
-        return result is null ? NotFound() : Ok(result);
+
+        if (!result.Success)
+        {
+            var statusCode = result.ErrorCode switch
+            {
+                "ASSIGNMENT_NOT_FOUND" => StatusCodes.Status404NotFound,
+                "DUPLICATE_ASSIGNMENT" => StatusCodes.Status409Conflict,
+                _ => StatusCodes.Status400BadRequest,
+            };
+            return StatusCode(statusCode, new { error = new { code = result.ErrorCode, message = result.ErrorMessage } });
+        }
+
+        return Ok(result.Assignment);
     }
 
     [HttpPost("{id:int}/contracts")]

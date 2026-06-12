@@ -1,6 +1,6 @@
 namespace Bridge.Domain.Entities;
 
-public class Sales
+public class Sales : ITimestamped
 {
     public int Id { get; set; }
     public int UserId { get; set; }

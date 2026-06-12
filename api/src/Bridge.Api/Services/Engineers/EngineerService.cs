@@ -86,7 +86,6 @@ public class EngineerService : IEngineerService
         engineer.Name = request.Name;
         engineer.Bio = request.Bio;
         engineer.AvoidedWorkNote = request.AvoidedWorkNote;
-        engineer.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
 
@@ -105,7 +104,6 @@ public class EngineerService : IEngineerService
         }
 
         engineer.PrimarySalesId = primarySalesId;
-        engineer.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
         return AssignSalesResult.Updated;

@@ -2,7 +2,7 @@ using Bridge.Domain.Enums;
 
 namespace Bridge.Domain.Entities;
 
-public class Contract
+public class Contract : ITimestamped
 {
     public int Id { get; set; }
     public int AssignmentId { get; set; }

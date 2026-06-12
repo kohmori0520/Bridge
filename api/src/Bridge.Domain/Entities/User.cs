@@ -2,7 +2,7 @@ using Bridge.Domain.Enums;
 
 namespace Bridge.Domain.Entities;
 
-public class User
+public class User : ITimestamped
 {
     public int Id { get; set; }
     public string Email { get; set; } = string.Empty;

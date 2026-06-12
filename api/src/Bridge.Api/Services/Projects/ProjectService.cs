@@ -150,6 +150,7 @@ public class ProjectService : IProjectService
         project.UnitPriceMin = request.UnitPriceMin;
         project.UnitPriceMax = request.UnitPriceMax;
         project.Status = status;
+        // RequiredSkills のみ変更されたケースでも親の UpdatedAt を進めるための touch
         project.UpdatedAt = DateTime.UtcNow;
 
         // 必須スキルは全置換(差分よりシンプル、件数が少ないので問題ない判断)
@@ -189,7 +190,6 @@ public class ProjectService : IProjectService
         if (hasAssignments) return ProjectDeleteResult.HasAssignments;
 
         project.DeletedAt = DateTime.UtcNow;
-        project.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return ProjectDeleteResult.Deleted;
     }

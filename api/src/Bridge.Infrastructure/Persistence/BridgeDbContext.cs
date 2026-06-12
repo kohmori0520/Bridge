@@ -23,4 +23,30 @@ public class BridgeDbContext : DbContext
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BridgeDbContext).Assembly);
     }
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        TouchUpdatedAt();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        TouchUpdatedAt();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    // 変更されたエンティティの UpdatedAt を自動更新する。
+    // サービス側での手動代入は不要(子エンティティのみ変更時に親を「触る」目的の代入は引き続き有効)
+    private void TouchUpdatedAt()
+    {
+        var now = DateTime.UtcNow;
+        foreach (var entry in ChangeTracker.Entries<ITimestamped>())
+        {
+            if (entry.State == EntityState.Modified)
+            {
+                entry.Entity.UpdatedAt = now;
+            }
+        }
+    }
 }
