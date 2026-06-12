@@ -105,4 +105,6 @@ Vercel の設定:
 | Build Command | `npm run build` |
 | Output Directory | `dist` |
 
+`web/vercel.json` で SPA 用の rewrite を設定しています。`/projects/1` など深い URL をリロードしても `index.html` が返り、React Router が画面を描画します。
+
 詳細は [`../Docs/deployment.md`](../Docs/deployment.md) を参照してください。
