@@ -8,6 +8,8 @@ primary_region = "nrt"  # Tokyo
 [env]
   ASPNETCORE_ENVIRONMENT = "Production"
   ASPNETCORE_URLS = "http://+:8080"
+  # 起動時に未適用のマイグレーションを自動適用(単一マシン運用が前提)
+  Database__MigrateOnStartup = "true"
 
 [http_service]
   internal_port = 8080

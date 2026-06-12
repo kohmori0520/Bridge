@@ -16,11 +16,34 @@ using Bridge.Api.Services.Assignments;
 using Bridge.Api.Services.Skills;
 using Bridge.Api.Services.ExpiringContracts;
 using Bridge.Api.Services.Matching;
+using Bridge.Api.Middleware;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
+using Serilog;
+using Serilog.Events;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 構造化ログ(本番は JSON 1行/イベント。Fly のログ基盤やgrepで扱いやすい形式)
+builder.Host.UseSerilog((context, loggerConfiguration) =>
+{
+    loggerConfiguration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+        .Enrich.FromLogContext();
+
+    if (context.HostingEnvironment.IsDevelopment())
+        loggerConfiguration.WriteTo.Console();
+    else
+        loggerConfiguration.WriteTo.Console(new CompactJsonFormatter());
+});
+
 // Controllers
 builder.Services.AddControllers();
+
+// 未処理例外を構造化エラー(500)に変換
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // CORS
 var allowedOrigins = builder.Configuration
@@ -131,6 +154,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// Rate Limiting(ログインのブルートフォース対策。IP 単位の固定ウィンドウ)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+            }));
+
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            error = new
+            {
+                code = "TOO_MANY_REQUESTS",
+                message = "リクエストが多すぎます。しばらく待ってから再試行してください",
+            }
+        }, cancellationToken);
+    };
+});
+
 // Authorization Policies
 builder.Services.AddAuthorization(options =>
 {
@@ -142,7 +191,9 @@ builder.Services.AddAuthorization(options =>
 var app = builder.Build();
 
 // Pipeline
+app.UseExceptionHandler(_ => { });
 app.UseForwardedHeaders();
+app.UseSerilogRequestLogging();
 
 if (app.Environment.IsDevelopment())
 {
@@ -152,9 +203,25 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("BridgeCors");
+app.UseRateLimiter();
 app.UseAuthentication();   // ← JWT 検証(必ず Authorization の前)
 app.UseAuthorization();
 app.MapControllers();
+
+// 起動時マイグレーション(デプロイとスキーマのずれを防ぐ。本番は fly.toml の
+// Database__MigrateOnStartup で有効化。複数インスタンス同時起動の構成にする場合は要見直し)
+if (app.Configuration.GetValue("Database:MigrateOnStartup", false))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<BridgeDbContext>();
+    var pending = (await db.Database.GetPendingMigrationsAsync()).ToArray();
+    if (pending.Length > 0)
+    {
+        app.Logger.LogInformation("Applying {Count} pending migration(s): {Migrations}",
+            pending.Length, string.Join(", ", pending));
+        await db.Database.MigrateAsync();
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
