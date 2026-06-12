@@ -1,4 +1,4 @@
-import { Dashboard, Groups, History, Logout, ManageAccounts, Person, Search, Work } from '@mui/icons-material'
+import { Dashboard, Groups, History, Logout, ManageAccounts, Person, Search, UploadFile, Work } from '@mui/icons-material'
 import { AppBar, Box, Button, Chip, Container, Tab, Tabs, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
@@ -21,12 +21,14 @@ export function AppLayout() {
           { label: 'ユーザー作成', icon: <ManageAccounts />, to: '/admin/users/new' },
           { label: '更新間近契約', icon: <History />, to: '/admin/contracts/expiring' },
           { label: '技術者', icon: <Groups />, to: '/engineers' },
+          { label: 'インポート', icon: <UploadFile />, to: '/import' },
         ]
       : user.role === 'Sales'
         ? [
             { label: 'ホーム', icon: <Dashboard />, to: '/' },
             { label: '案件', icon: <Work />, to: '/projects' },
             { label: '技術者', icon: <Groups />, to: '/engineers' },
+            { label: 'インポート', icon: <UploadFile />, to: '/import' },
           ]
         : [
             { label: 'ホーム', icon: <Dashboard />, to: '/' },
