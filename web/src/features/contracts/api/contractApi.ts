@@ -60,6 +60,21 @@ function toContract(
   }
 }
 
+function toExpiringContract(item: ApiExpiringContractsResponse['items'][number]): ExpiringContract {
+  return {
+    id: item.contractId,
+    assignmentId: item.assignmentId,
+    engineerId: item.engineer.id,
+    engineerName: item.engineer.name,
+    projectId: item.project.id,
+    projectTitle: item.project.title,
+    clientName: item.project.clientName,
+    periodTo: item.periodTo,
+    daysRemaining: item.daysRemaining,
+    renewalStatus: item.renewalStatus === 'scheduled' ? '更新予定あり' : item.renewalStatus === 'not_planned' ? '更新未定' : '対象外',
+  }
+}
+
 export const contractApi = {
   listMine: async (): Promise<Contract[]> => {
     const response = await apiRequest<ApiEngineerAssignmentsResponse>('/engineers/me/assignments')
@@ -69,17 +84,11 @@ export const contractApi = {
   },
   listExpiring: async (days = 30): Promise<ExpiringContract[]> => {
     const response = await apiRequest<ApiExpiringContractsResponse>(`/contracts/expiring?days=${days}`)
-    return response.items.map((item) => ({
-      id: item.contractId,
-      assignmentId: item.assignmentId,
-      engineerId: item.engineer.id,
-      engineerName: item.engineer.name,
-      projectId: item.project.id,
-      projectTitle: item.project.title,
-      clientName: item.project.clientName,
-      periodTo: item.periodTo,
-      daysRemaining: item.daysRemaining,
-      renewalStatus: item.renewalStatus === 'scheduled' ? '更新予定あり' : item.renewalStatus === 'not_planned' ? '更新未定' : '対象外',
-    }))
+    return response.items.map(toExpiringContract)
+  },
+  /** 自分の担当エンジニアの更新間近契約 (Sales 用) */
+  listMyExpiring: async (days = 30): Promise<ExpiringContract[]> => {
+    const response = await apiRequest<ApiExpiringContractsResponse>(`/sales/me/expiring-contracts?days=${days}`)
+    return response.items.map(toExpiringContract)
   },
 }

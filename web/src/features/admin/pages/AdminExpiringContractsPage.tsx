@@ -6,11 +6,14 @@ import { EmptyState } from '../../../shared/components/EmptyState'
 import { LoadingState } from '../../../shared/components/LoadingState'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { Section } from '../../../shared/components/Section'
+import { useIsMobile } from '../../../shared/hooks/useIsMobile'
 import type { ExpiringContract } from '../../contracts/api/contractApi'
+import { ExpiringContractCardList } from '../../contracts/components/ExpiringContractCardList'
 import { useExpiringContracts } from '../../contracts/hooks/useContracts'
 
 export function AdminExpiringContractsPage() {
   const { data: contracts = [], isLoading } = useExpiringContracts(30)
+  const isMobile = useIsMobile()
 
   const columns: GridColDef<ExpiringContract>[] = [
     { field: 'engineerName', headerName: 'エンジニア', flex: 0.9, minWidth: 150 },
@@ -54,6 +57,8 @@ export function AdminExpiringContractsPage() {
       <Section title="全社アラート">
         {contracts.length === 0 ? (
           <EmptyState message="更新間近の契約はありません。" />
+        ) : isMobile ? (
+          <ExpiringContractCardList contracts={contracts} />
         ) : (
           <DataGrid
             autoHeight
